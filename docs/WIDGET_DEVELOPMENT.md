@@ -98,6 +98,92 @@ When `fullscreenable` is true:
 - Widget state is preserved when toggling
 - Original position/size is restored when exiting fullscreen
 
+### Implementing Fullscreen Views
+
+Widgets can provide different layouts and functionality between their regular and fullscreen states. The `widget.isFullscreen` prop allows you to conditionally render different views or enhance the widget's capabilities when in fullscreen mode.
+
+Here's an example from the Calendar widget that demonstrates best practices for implementing fullscreen views:
+
+1. **Responsive Layouts**
+```typescript
+// Adjust container sizes based on fullscreen state
+<div className={`
+  ${widget.isFullscreen ? 'h-24 p-1' : 'h-6'} 
+  flex flex-col
+`}>
+```
+
+2. **Enhanced Content**
+```typescript
+// Show additional content in fullscreen mode
+<div className="text-center">
+  <div className={`font-semibold ${widget.isFullscreen ? 'text-xl' : 'text-sm'}`}>
+    {monthNames[month]}
+  </div>
+</div>
+
+{widget.isFullscreen && (
+  <div className="mt-1 text-xs space-y-1">
+    {/* Additional fullscreen-only content */}
+  </div>
+)}
+```
+
+3. **Improved Typography and Spacing**
+```typescript
+// Adjust text sizes and spacing for better readability
+{(widget.isFullscreen ? dayNames : dayNamesShort).map(day => (
+  <div className={`
+    ${widget.isFullscreen ? 'text-sm py-2' : 'text-xs'} 
+    text-white/60 text-center font-medium
+  `}>
+    {day}
+  </div>
+))}
+```
+
+4. **Additional Features**
+```typescript
+{/* Selected Date Details (Fullscreen Only) */}
+{widget.isFullscreen && selectedDate && (
+  <div className="mt-4 p-4 bg-white/5 rounded-lg">
+    <h3 className="text-lg font-semibold mb-2">
+      {dayNames[selectedDate.getDay()]}, {monthNames[selectedDate.getMonth()]} {selectedDate.getDate()}
+    </h3>
+    <div className="text-sm text-white/70">
+      No events scheduled for this day
+    </div>
+  </div>
+)}
+```
+
+#### Best Practices for Fullscreen Implementation
+
+1. **Progressive Enhancement**
+   - Start with a fully functional compact view
+   - Add enhanced features in fullscreen mode
+   - Ensure core functionality works in both modes
+
+2. **Responsive Design**
+   - Use CSS classes conditionally based on `isFullscreen`
+   - Adjust spacing, typography, and layout accordingly
+   - Consider different screen sizes in fullscreen mode
+
+3. **State Management**
+   - Maintain consistent state between views
+   - Add fullscreen-specific state when needed
+   - Preserve user interactions when toggling modes
+
+4. **Performance**
+   - Lazy load fullscreen-only components
+   - Consider code-splitting for heavy fullscreen features
+   - Optimize animations and transitions
+
+5. **User Experience**
+   - Provide clear visual hierarchy in both modes
+   - Make effective use of additional space
+   - Keep interactions consistent between modes
+
 ## Widget Lifecycle
 
 Your widget component receives these props:

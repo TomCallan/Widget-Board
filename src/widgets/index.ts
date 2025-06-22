@@ -21,6 +21,14 @@ import {
   Calculator 
 } from 'lucide-react';
 
+export const WIDGET_CATEGORIES = {
+  TIME: 'Time & Date',
+  PRODUCTIVITY: 'Productivity',
+  SYSTEM: 'System',
+  TOOLS: 'Tools',
+  INFORMATION: 'Information'
+} as const;
+
 export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
   clock: {
     type: 'clock',
@@ -36,7 +44,8 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
       fullscreenable: false,
       hasSettings: false
     },
-    version: '1.0.0'
+    version: '1.0.0',
+    categories: [WIDGET_CATEGORIES.TIME]
   },
   weather: {
     type: 'weather',
@@ -52,7 +61,8 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
       fullscreenable: false,
       hasSettings: true
     },
-    version: '1.0.0'
+    version: '1.0.0',
+    categories: [WIDGET_CATEGORIES.INFORMATION]
   },
   todo: {
     type: 'todo',
@@ -68,7 +78,8 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
       fullscreenable: true,
       hasSettings: false
     },
-    version: '1.0.0'
+    version: '1.0.0',
+    categories: [WIDGET_CATEGORIES.PRODUCTIVITY]
   },
   quicklinks: {
     type: 'quicklinks',
@@ -84,7 +95,8 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
       fullscreenable: false,
       hasSettings: true
     },
-    version: '1.0.0'
+    version: '1.0.0',
+    categories: [WIDGET_CATEGORIES.PRODUCTIVITY]
   },
   systemstats: {
     type: 'systemstats',
@@ -100,7 +112,8 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
       fullscreenable: true,
       hasSettings: false
     },
-    version: '1.0.0'
+    version: '1.0.0',
+    categories: [WIDGET_CATEGORIES.SYSTEM]
   },
   notes: {
     type: 'notes',
@@ -116,9 +129,13 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
       fullscreenable: true,
       hasSettings: false
     },
-    version: '1.0.0'
+    version: '1.0.0',
+    categories: [WIDGET_CATEGORIES.PRODUCTIVITY]
   },
-  calendar: calendarWidgetConfig,
+  calendar: {
+    ...calendarWidgetConfig,
+    categories: [WIDGET_CATEGORIES.TIME, WIDGET_CATEGORIES.PRODUCTIVITY]
+  },
   countdown: {
     type: 'countdown',
     name: 'Timer',
@@ -133,7 +150,8 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
       fullscreenable: false,
       hasSettings: true
     },
-    version: '1.0.0'
+    version: '1.0.0',
+    categories: [WIDGET_CATEGORIES.TIME, WIDGET_CATEGORIES.TOOLS]
   },
   news: {
     type: 'news',
@@ -149,7 +167,8 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
       fullscreenable: true,
       hasSettings: true
     },
-    version: '1.0.0'
+    version: '1.0.0',
+    categories: [WIDGET_CATEGORIES.INFORMATION]
   },
   calculator: {
     type: 'calculator',
@@ -165,6 +184,7 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
       fullscreenable: false,
       hasSettings: false
     },
-    version: '1.0.0'
+    version: '1.0.0',
+    categories: [WIDGET_CATEGORIES.TOOLS]
   }
 };

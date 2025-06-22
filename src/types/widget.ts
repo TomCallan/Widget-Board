@@ -39,6 +39,7 @@ export interface WidgetConfig {
     hasSettings?: boolean;
   };
   version: string;
+  categories?: string[];
   author?: {
     name: string;
     email?: string;
