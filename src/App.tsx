@@ -1,71 +1,96 @@
 import React, { useState } from 'react';
-import { Widget } from './types/widget';
+import { Widget, DashboardPage } from './types/widget';
 import { WidgetContainer } from './components/WidgetContainer';
 import { WidgetSelector } from './components/WidgetSelector';
+import { PageManager } from './components/PageManager';
 import { WIDGET_REGISTRY } from './widgets';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { Plus, Settings } from 'lucide-react';
+import { Plus, Settings, Home } from 'lucide-react';
+
+const DEFAULT_WIDGETS: Widget[] = [
+  {
+    id: '1',
+    type: 'clock',
+    title: 'Clock',
+    position: { x: 40, y: 40 },
+    size: { width: 280, height: 160 },
+    config: {},
+    enabled: true
+  },
+  {
+    id: '2',
+    type: 'weather',
+    title: 'Weather',
+    position: { x: 340, y: 40 },
+    size: { width: 280, height: 180 },
+    config: {},
+    enabled: true
+  },
+  {
+    id: '3',
+    type: 'todo',
+    title: 'Tasks',
+    position: { x: 40, y: 220 },
+    size: { width: 320, height: 280 },
+    config: {},
+    enabled: true
+  },
+  {
+    id: '4',
+    type: 'notes',
+    title: 'Notes',
+    position: { x: 640, y: 40 },
+    size: { width: 300, height: 280 },
+    config: {},
+    enabled: true
+  }
+];
+
+const DEFAULT_PAGES: DashboardPage[] = [
+  {
+    id: 'default',
+    name: 'Home',
+    widgets: DEFAULT_WIDGETS,
+    icon: Home,
+    color: 'purple'
+  }
+];
 
 function App() {
-  const [widgets, setWidgets] = useLocalStorage<Widget[]>('dashboard-widgets', [
-    {
-      id: '1',
-      type: 'clock',
-      title: 'Clock',
-      position: { x: 40, y: 40 },
-      size: { width: 280, height: 160 },
-      config: {},
-      enabled: true
-    },
-    {
-      id: '2',
-      type: 'weather',
-      title: 'Weather',
-      position: { x: 340, y: 40 },
-      size: { width: 280, height: 180 },
-      config: {},
-      enabled: true
-    },
-    {
-      id: '3',
-      type: 'todo',
-      title: 'Tasks',
-      position: { x: 40, y: 220 },
-      size: { width: 320, height: 280 },
-      config: {},
-      enabled: true
-    },
-    {
-      id: '4',
-      type: 'notes',
-      title: 'Notes',
-      position: { x: 640, y: 40 },
-      size: { width: 300, height: 280 },
-      config: {},
-      enabled: true
-    }
-  ]);
-
+  const [pages, setPages] = useLocalStorage<DashboardPage[]>('dashboard-pages', DEFAULT_PAGES);
+  const [currentPageId, setCurrentPageId] = useLocalStorage<string>('current-page-id', 'default');
   const [showWidgetSelector, setShowWidgetSelector] = useState(false);
 
-  const handlePositionChange = (id: string, position: { x: number; y: number }) => {
-    setWidgets(widgets.map(widget =>
-      widget.id === id ? { ...widget, position } : widget
+  const currentPage = pages.find(p => p.id === currentPageId) || pages[0];
+  const widgets = currentPage.widgets;
+
+  const updateCurrentPage = (updatedWidgets: Widget[]) => {
+    setPages(pages.map(page =>
+      page.id === currentPageId
+        ? { ...page, widgets: updatedWidgets }
+        : page
     ));
+  };
+
+  const handlePositionChange = (id: string, position: { x: number; y: number }) => {
+    const updatedWidgets = widgets.map(widget =>
+      widget.id === id ? { ...widget, position } : widget
+    );
+    updateCurrentPage(updatedWidgets);
   };
 
   const handleSizeChange = (id: string, size: { width: number; height: number }) => {
-    setWidgets(widgets.map(widget =>
+    const updatedWidgets = widgets.map(widget =>
       widget.id === id ? { ...widget, size } : widget
-    ));
+    );
+    updateCurrentPage(updatedWidgets);
   };
 
   const handleToggleFullscreen = (id: string) => {
-    setWidgets(widgets.map(widget => {
+    const updatedWidgets = widgets.map(widget => {
       if (widget.id !== id) return widget;
       
       if (!widget.isFullscreen) {
-        // Save current state before going fullscreen
         return {
           ...widget,
           isFullscreen: true,
@@ -75,7 +100,6 @@ function App() {
           }
         };
       } else {
-        // Restore saved state when exiting fullscreen
         return {
           ...widget,
           isFullscreen: false,
@@ -84,18 +108,19 @@ function App() {
           savedState: undefined
         };
       }
-    }));
+    });
+    updateCurrentPage(updatedWidgets);
   };
 
   const handleRemoveWidget = (id: string) => {
-    setWidgets(widgets.filter(widget => widget.id !== id));
+    const updatedWidgets = widgets.filter(widget => widget.id !== id);
+    updateCurrentPage(updatedWidgets);
   };
 
   const handleAddWidget = (type: string) => {
     const config = WIDGET_REGISTRY[type];
     if (!config) return;
 
-    // Find a good position for the new widget
     const findAvailablePosition = () => {
       const gridSize = 20;
       const maxAttempts = 100;
@@ -104,7 +129,6 @@ function App() {
         const x = Math.floor(Math.random() * 10) * gridSize + 40;
         const y = Math.floor(Math.random() * 10) * gridSize + 40;
         
-        // Check if position overlaps with existing widgets
         const overlaps = widgets.some(widget => {
           const widgetRight = widget.position.x + widget.size.width;
           const widgetBottom = widget.position.y + widget.size.height;
@@ -120,7 +144,6 @@ function App() {
         }
       }
       
-      // Fallback position
       return { x: 100 + (widgets.length * 20), y: 100 + (widgets.length * 20) };
     };
 
@@ -134,13 +157,36 @@ function App() {
       enabled: true
     };
 
-    setWidgets([...widgets, newWidget]);
+    updateCurrentPage([...widgets, newWidget]);
   };
 
   const handleUpdateWidget = (id: string, updates: Partial<Widget>) => {
-    setWidgets(widgets.map(widget =>
+    const updatedWidgets = widgets.map(widget =>
       widget.id === id ? { ...widget, ...updates } : widget
+    );
+    updateCurrentPage(updatedWidgets);
+  };
+
+  const handleAddPage = (page: DashboardPage) => {
+    setPages([...pages, page]);
+    setCurrentPageId(page.id);
+  };
+
+  const handleUpdatePage = (pageId: string, updates: Partial<DashboardPage>) => {
+    setPages(pages.map(page =>
+      page.id === pageId ? { ...page, ...updates } : page
     ));
+  };
+
+  const handleDeletePage = (pageId: string) => {
+    if (pages.length <= 1) return; // Don't delete the last page
+    
+    const newPages = pages.filter(page => page.id !== pageId);
+    setPages(newPages);
+    
+    if (currentPageId === pageId) {
+      setCurrentPageId(newPages[0].id);
+    }
   };
 
   return (
@@ -178,8 +224,18 @@ function App() {
         </div>
       </header>
 
+      {/* Page Manager */}
+      <PageManager
+        pages={pages}
+        currentPageId={currentPageId}
+        onPageChange={setCurrentPageId}
+        onPageAdd={handleAddPage}
+        onPageUpdate={handleUpdatePage}
+        onPageDelete={handleDeletePage}
+      />
+
       {/* Dashboard */}
-      <main className="dashboard relative z-10 px-6 pb-6" style={{ minHeight: 'calc(100vh - 120px)' }}>
+      <main className="dashboard relative z-10 px-6 pb-6" style={{ minHeight: 'calc(100vh - 180px)' }}>
         {widgets.map(widget => {
           const config = WIDGET_REGISTRY[widget.type];
           if (!config) return null;

@@ -1,5 +1,13 @@
 import { LucideIcon } from 'lucide-react';
 
+export interface DashboardPage {
+  id: string;
+  name: string;
+  widgets: Widget[];
+  icon?: LucideIcon;
+  color?: string;
+}
+
 export interface Widget {
   id: string;
   type: string;
