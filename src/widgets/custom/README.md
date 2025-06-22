@@ -25,7 +25,7 @@ const YourCustomWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
 };
 
 export const yourCustomWidgetConfig: WidgetConfig = {
-  type: 'your-widget-type', // Unique identifier
+  type: 'custom-your-widget', // Must start with 'custom-'
   name: 'Your Widget Name',
   description: 'What your widget does',
   defaultSize: { width: 300, height: 200 },
@@ -63,7 +63,7 @@ registerCustomWidget(yourCustomWidgetConfig);
 ## Best Practices
 
 1. Follow the widget development guidelines in `docs/WIDGET_DEVELOPMENT.md`
-2. Ensure your widget type is unique
+2. Ensure your widget type starts with 'custom-' and is unique
 3. Include proper TypeScript types
 4. Handle errors gracefully
 5. Clean up resources in useEffect hooks

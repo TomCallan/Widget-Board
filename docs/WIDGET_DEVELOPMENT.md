@@ -12,41 +12,62 @@ This guide will help you create custom widgets for the Dash platform. Whether yo
 
 ## Getting Started
 
-To create a new widget, you'll need to:
+To create a new widget:
 
-1. Create a new TypeScript file in the `src/widgets` directory
-2. Export a widget configuration object
-3. Implement the widget component
+1. Create a new TypeScript file in the `src/widgets/custom` directory
+2. Import the necessary types and components
+3. Create your widget component
+4. Export your widget configuration
+5. Register your widget with the platform
 
-Here's a basic example:
+Here's a complete example:
 
 ```typescript
 import React from 'react';
-import { WidgetConfig, WidgetProps } from '../types/widget';
+import { WidgetConfig, WidgetProps } from '../../types/widget';
+import { YourIcon } from 'lucide-react';
 
 const MyWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
+  // Access widget state
+  const config = widget.config;
+  
+  // Update widget state
+  const updateConfig = (updates: any) => {
+    onUpdate(widget.id, {
+      config: { ...config, ...updates }
+    });
+  };
+
   return (
-    <div>
-      <h3>My Custom Widget</h3>
+    <div className="h-full flex flex-col">
+      <h3 className={`font-semibold ${widget.isFullscreen ? 'text-xl' : 'text-sm'}`}>
+        My Custom Widget
+      </h3>
       {/* Your widget content here */}
     </div>
   );
 };
 
 export const myWidgetConfig: WidgetConfig = {
-  type: 'my-widget',
+  type: 'custom-my-widget',
   name: 'My Widget',
   description: 'A description of what your widget does',
   defaultSize: { width: 300, height: 200 },
   minSize: { width: 200, height: 150 },
   maxSize: { width: 800, height: 600 },
   component: MyWidget,
-  icon: YourWidgetIcon,
+  icon: YourIcon,
   version: '1.0.0',
   features: {
     resizable: true,
     fullscreenable: true,
     hasSettings: false
+  },
+  categories: ['PRODUCTIVITY'], // Use available categories
+  author: {
+    name: 'Your Name',
+    email: 'your@email.com',
+    url: 'https://your-website.com'
   }
 };
 ```
@@ -55,18 +76,29 @@ export const myWidgetConfig: WidgetConfig = {
 
 ### Required Properties
 
-- `type`: Unique identifier for your widget type
-- `name`: Display name of your widget
-- `description`: Brief description of what your widget does
-- `defaultSize`: Default dimensions of the widget
-- `minSize`: Minimum allowed dimensions
-- `maxSize`: Maximum allowed dimensions
+Every widget must implement the `WidgetConfig` interface with these required properties:
+
+- `type`: Unique identifier for your widget type (must start with 'custom-', e.g., 'custom-calculator')
+- `name`: Display name shown in the widget header and selector
+- `description`: Brief description of the widget's functionality
+- `defaultSize`: Initial dimensions when first added
+- `minSize`: Minimum allowed dimensions when resizing
+- `maxSize`: Maximum allowed dimensions when resizing
 - `component`: The React component that renders your widget
-- `icon`: An icon component (preferably from lucide-react)
-- `version`: Semantic version number
+- `icon`: An icon from lucide-react library
+- `version`: Semantic version number (e.g., '1.0.0')
 
 ### Optional Properties
 
+- `features`: Object defining supported features
+  ```typescript
+  features: {
+    resizable?: boolean;      // Enable/disable resizing
+    fullscreenable?: boolean; // Enable/disable fullscreen mode
+    hasSettings?: boolean;    // Enable/disable settings panel
+  }
+  ```
+- `categories`: Array of categories the widget belongs to
 - `author`: Information about the widget creator
 - `license`: License type
 - `repository`: Link to source code
@@ -74,212 +106,115 @@ export const myWidgetConfig: WidgetConfig = {
 
 ## Widget Features
 
-Widgets can support various features through the `features` property:
+### Responsive Design
+
+Your widget should handle both compact and fullscreen modes gracefully:
 
 ```typescript
-features: {
-  resizable: boolean;      // Enable/disable resizing
-  fullscreenable: boolean; // Enable/disable fullscreen mode
-  hasSettings: boolean;    // Enable/disable settings panel
-}
-```
-
-### Resizable Widgets
-
-When `resizable` is true, users can:
-- Drag the bottom-right corner to resize
-- Use the resize icon in the header
-- The widget will respect `minSize` and `maxSize` constraints
-
-### Fullscreen Mode
-
-When `fullscreenable` is true:
-- Users can toggle fullscreen mode via the header button
-- Widget state is preserved when toggling
-- Original position/size is restored when exiting fullscreen
-
-### Implementing Fullscreen Views
-
-Widgets can provide different layouts and functionality between their regular and fullscreen states. The `widget.isFullscreen` prop allows you to conditionally render different views or enhance the widget's capabilities when in fullscreen mode.
-
-Here's an example from the Calendar widget that demonstrates best practices for implementing fullscreen views:
-
-1. **Responsive Layouts**
-```typescript
-// Adjust container sizes based on fullscreen state
-<div className={`
-  ${widget.isFullscreen ? 'h-24 p-1' : 'h-6'} 
-  flex flex-col
-`}>
-```
-
-2. **Enhanced Content**
-```typescript
-// Show additional content in fullscreen mode
-<div className="text-center">
-  <div className={`font-semibold ${widget.isFullscreen ? 'text-xl' : 'text-sm'}`}>
-    {monthNames[month]}
-  </div>
-</div>
-
-{widget.isFullscreen && (
-  <div className="mt-1 text-xs space-y-1">
-    {/* Additional fullscreen-only content */}
-  </div>
-)}
-```
-
-3. **Improved Typography and Spacing**
-```typescript
-// Adjust text sizes and spacing for better readability
-{(widget.isFullscreen ? dayNames : dayNamesShort).map(day => (
-  <div className={`
-    ${widget.isFullscreen ? 'text-sm py-2' : 'text-xs'} 
-    text-white/60 text-center font-medium
-  `}>
-    {day}
-  </div>
-))}
-```
-
-4. **Additional Features**
-```typescript
-{/* Selected Date Details (Fullscreen Only) */}
-{widget.isFullscreen && selectedDate && (
-  <div className="mt-4 p-4 bg-white/5 rounded-lg">
-    <h3 className="text-lg font-semibold mb-2">
-      {dayNames[selectedDate.getDay()]}, {monthNames[selectedDate.getMonth()]} {selectedDate.getDate()}
-    </h3>
-    <div className="text-sm text-white/70">
-      No events scheduled for this day
-    </div>
-  </div>
-)}
-```
-
-#### Best Practices for Fullscreen Implementation
-
-1. **Progressive Enhancement**
-   - Start with a fully functional compact view
-   - Add enhanced features in fullscreen mode
-   - Ensure core functionality works in both modes
-
-2. **Responsive Design**
-   - Use CSS classes conditionally based on `isFullscreen`
-   - Adjust spacing, typography, and layout accordingly
-   - Consider different screen sizes in fullscreen mode
-
-3. **State Management**
-   - Maintain consistent state between views
-   - Add fullscreen-specific state when needed
-   - Preserve user interactions when toggling modes
-
-4. **Performance**
-   - Lazy load fullscreen-only components
-   - Consider code-splitting for heavy fullscreen features
-   - Optimize animations and transitions
-
-5. **User Experience**
-   - Provide clear visual hierarchy in both modes
-   - Make effective use of additional space
-   - Keep interactions consistent between modes
-
-## Widget Lifecycle
-
-Your widget component receives these props:
-
-```typescript
-interface WidgetProps {
-  widget: Widget;          // Current widget instance
-  onUpdate: (id: string, updates: Partial<Widget>) => void;  // Update widget state
-  onRemove: (id: string) => void;  // Remove widget
-  onResize?: (id: string, size: { width: number; height: number }) => void;  // Handle resize
-  onToggleFullscreen?: (id: string) => void;  // Toggle fullscreen
-}
-```
-
-### State Management
-
-- Use the `widget.config` object to store widget-specific state
-- Call `onUpdate` to persist changes
-- Handle resize/fullscreen events appropriately
-
-Example:
-
-```typescript
-const MyWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
-  const updateConfig = (updates: any) => {
-    onUpdate(widget.id, {
-      config: { ...widget.config, ...updates }
-    });
-  };
-
+const MyWidget: React.FC<WidgetProps> = ({ widget }) => {
   return (
-    <div>
-      {/* Widget content */}
+    <div className="h-full">
+      {/* Conditional rendering based on mode */}
+      {widget.isFullscreen ? (
+        <FullscreenView />
+      ) : (
+        <CompactView />
+      )}
     </div>
   );
 };
 ```
 
+### State Management
+
+Widgets receive these props:
+```typescript
+interface WidgetProps {
+  widget: Widget;          // Current widget instance
+  onUpdate: (id: string, updates: Partial<Widget>) => void;
+  onRemove: (id: string) => void;
+  onResize?: (id: string, size: { width: number; height: number }) => void;
+  onToggleFullscreen?: (id: string) => void;
+}
+```
+
+Store widget state in the `config` object:
+```typescript
+const updateConfig = (updates: any) => {
+  onUpdate(widget.id, {
+    config: { ...widget.config, ...updates }
+  });
+};
+```
+
+### Styling Guidelines
+
+1. Use Tailwind CSS classes for consistent styling
+2. Follow the platform's design system
+3. Support dark mode by default
+4. Use relative units for better scaling
+5. Implement proper spacing and padding
+
+Example:
+```typescript
+<div className="p-4 space-y-4 text-white/70">
+  <h3 className="font-semibold text-white">Title</h3>
+  <div className="bg-white/10 rounded-lg p-3">
+    Content
+  </div>
+</div>
+```
+
 ## Best Practices
 
-1. **Responsive Design**
-   - Design your widget to work well at different sizes
-   - Use relative units (%, rem) over fixed pixels
-   - Test both compact and fullscreen modes
-
-2. **Performance**
-   - Implement proper cleanup in useEffect hooks
-   - Optimize re-renders using React.memo or useMemo
+1. **Performance**
+   - Use React.memo for expensive components
+   - Implement proper cleanup in useEffect
+   - Optimize re-renders
    - Lazy load heavy dependencies
 
-3. **Error Handling**
-   - Implement proper error boundaries
+2. **Error Handling**
+   - Implement error boundaries
    - Provide meaningful error messages
-   - Gracefully handle API failures
+   - Handle API failures gracefully
+   - Validate user input
 
-4. **Accessibility**
-   - Use semantic HTML elements
-   - Provide proper ARIA attributes
-   - Ensure keyboard navigation works
+3. **Accessibility**
+   - Use semantic HTML
+   - Provide ARIA attributes
+   - Support keyboard navigation
+   - Maintain sufficient color contrast
+
+4. **Testing**
+   - Test all features and interactions
+   - Verify resource cleanup
+   - Test different screen sizes
+   - Validate error handling
+   - Check performance impact
 
 ## Publishing to Marketplace
 
-To publish your widget:
+Before publishing:
 
-1. Ensure your widget meets all requirements:
-   - Complete metadata (author, version, etc.)
-   - Proper documentation
-   - Tested across different sizes
-   - No external dependencies outside package.json
+1. **Documentation**
+   - Clear description
+   - Usage instructions
+   - Configuration options
+   - Example scenarios
 
-2. Create a widget manifest:
-   ```typescript
-   const manifest: WidgetManifest = {
-     id: 'your-unique-widget-id',
-     type: 'my-widget',
-     name: 'My Widget',
-     description: '...',
-     version: '1.0.0',
-     author: {
-       name: 'Your Name',
-       email: 'your@email.com',
-       url: 'https://your-website.com'
-     },
-     screenshots: ['url-to-screenshot-1', 'url-to-screenshot-2'],
-     categories: ['productivity', 'tools'],
-     tags: ['react', 'typescript']
-   };
-   ```
+2. **Quality Checks**
+   - Code linting
+   - Type checking
+   - Performance testing
+   - Cross-browser testing
 
-3. Submit for review:
-   - Package your widget code
-   - Include the manifest
-   - Submit through the marketplace interface
+3. **Metadata**
+   - Accurate categories
+   - Relevant tags
+   - Complete author information
+   - Clear version number
 
-Remember to:
-- Follow semantic versioning
-- Keep documentation up to date
-- Respond to user feedback and bug reports
-- Maintain compatibility with the platform 
+4. **Assets**
+   - High-quality screenshots
+   - Demo video (if applicable)
+   - Example configurations 
