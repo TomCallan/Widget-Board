@@ -1,6 +1,6 @@
 import React from 'react';
 import { WIDGET_REGISTRY } from '../widgets';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Maximize2, ArrowUpDown, Settings } from 'lucide-react';
 
 interface WidgetSelectorProps {
   isOpen: boolean;
@@ -45,8 +45,27 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({
                 <div className="flex-1">
                   <h3 className="font-medium text-white mb-1">{config.name}</h3>
                   <p className="text-sm text-white/70">{config.description}</p>
-                  <div className="text-xs text-white/50 mt-2">
-                    {config.defaultSize.width} × {config.defaultSize.height}
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="text-xs text-white/50">
+                      {config.defaultSize.width} × {config.defaultSize.height}
+                    </div>
+                    <div className="flex items-center gap-1 ml-2">
+                      {config.features?.resizable && (
+                        <div className="p-1 bg-white/5 rounded" title="Resizable">
+                          <ArrowUpDown size={12} className="text-purple-400" />
+                        </div>
+                      )}
+                      {config.features?.fullscreenable && (
+                        <div className="p-1 bg-white/5 rounded" title="Fullscreen Support">
+                          <Maximize2 size={12} className="text-purple-400" />
+                        </div>
+                      )}
+                      {config.features?.hasSettings && (
+                        <div className="p-1 bg-white/5 rounded" title="Configurable">
+                          <Settings size={12} className="text-purple-400" />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

@@ -54,6 +54,39 @@ function App() {
     ));
   };
 
+  const handleSizeChange = (id: string, size: { width: number; height: number }) => {
+    setWidgets(widgets.map(widget =>
+      widget.id === id ? { ...widget, size } : widget
+    ));
+  };
+
+  const handleToggleFullscreen = (id: string) => {
+    setWidgets(widgets.map(widget => {
+      if (widget.id !== id) return widget;
+      
+      if (!widget.isFullscreen) {
+        // Save current state before going fullscreen
+        return {
+          ...widget,
+          isFullscreen: true,
+          savedState: {
+            position: { ...widget.position },
+            size: { ...widget.size }
+          }
+        };
+      } else {
+        // Restore saved state when exiting fullscreen
+        return {
+          ...widget,
+          isFullscreen: false,
+          position: widget.savedState?.position || widget.position,
+          size: widget.savedState?.size || widget.size,
+          savedState: undefined
+        };
+      }
+    }));
+  };
+
   const handleRemoveWidget = (id: string) => {
     setWidgets(widgets.filter(widget => widget.id !== id));
   };
@@ -157,13 +190,18 @@ function App() {
             <WidgetContainer
               key={widget.id}
               widget={widget}
+              widgetConfig={config}
               onPositionChange={handlePositionChange}
+              onSizeChange={handleSizeChange}
+              onToggleFullscreen={handleToggleFullscreen}
               onRemove={handleRemoveWidget}
             >
               <WidgetComponent
                 widget={widget}
                 onUpdate={handleUpdateWidget}
                 onRemove={handleRemoveWidget}
+                onResize={handleSizeChange}
+                onToggleFullscreen={handleToggleFullscreen}
               />
             </WidgetContainer>
           );

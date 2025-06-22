@@ -5,7 +5,7 @@ import { TodoWidget } from './TodoWidget';
 import { QuickLinksWidget } from './QuickLinksWidget';
 import { SystemStatsWidget } from './SystemStatsWidget';
 import { NotesWidget } from './NotesWidget';
-import { CalendarWidget } from './CalendarWidget';
+import { CalendarWidget, calendarWidgetConfig } from './CalendarWidget';
 import { CountdownWidget } from './CountdownWidget';
 import { NewsWidget } from './NewsWidget';
 import { CalculatorWidget } from './CalculatorWidget';
@@ -16,7 +16,6 @@ import {
   Link, 
   Activity, 
   StickyNote, 
-  Calendar, 
   Timer, 
   Newspaper, 
   Calculator 
@@ -31,7 +30,13 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     maxSize: { width: 400, height: 200 },
     component: ClockWidget,
     icon: Clock,
-    description: 'Real-time clock with date display'
+    description: 'Real-time clock with date display',
+    features: {
+      resizable: true,
+      fullscreenable: false,
+      hasSettings: false
+    },
+    version: '1.0.0'
   },
   weather: {
     type: 'weather',
@@ -41,7 +46,13 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     maxSize: { width: 320, height: 220 },
     component: WeatherWidget,
     icon: Cloud,
-    description: 'Current weather conditions'
+    description: 'Current weather conditions',
+    features: {
+      resizable: true,
+      fullscreenable: false,
+      hasSettings: true
+    },
+    version: '1.0.0'
   },
   todo: {
     type: 'todo',
@@ -51,7 +62,13 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     maxSize: { width: 400, height: 400 },
     component: TodoWidget,
     icon: CheckSquare,
-    description: 'Simple task management'
+    description: 'Simple task management',
+    features: {
+      resizable: true,
+      fullscreenable: true,
+      hasSettings: false
+    },
+    version: '1.0.0'
   },
   quicklinks: {
     type: 'quicklinks',
@@ -61,7 +78,13 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     maxSize: { width: 320, height: 240 },
     component: QuickLinksWidget,
     icon: Link,
-    description: 'Quick access to important links'
+    description: 'Quick access to important links',
+    features: {
+      resizable: true,
+      fullscreenable: false,
+      hasSettings: true
+    },
+    version: '1.0.0'
   },
   systemstats: {
     type: 'systemstats',
@@ -71,7 +94,13 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     maxSize: { width: 320, height: 240 },
     component: SystemStatsWidget,
     icon: Activity,
-    description: 'System performance monitoring'
+    description: 'System performance monitoring',
+    features: {
+      resizable: true,
+      fullscreenable: true,
+      hasSettings: false
+    },
+    version: '1.0.0'
   },
   notes: {
     type: 'notes',
@@ -81,18 +110,15 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     maxSize: { width: 400, height: 400 },
     component: NotesWidget,
     icon: StickyNote,
-    description: 'Quick notes and reminders'
+    description: 'Quick notes and reminders',
+    features: {
+      resizable: true,
+      fullscreenable: true,
+      hasSettings: false
+    },
+    version: '1.0.0'
   },
-  calendar: {
-    type: 'calendar',
-    name: 'Calendar',
-    defaultSize: { width: 280, height: 260 },
-    minSize: { width: 240, height: 220 },
-    maxSize: { width: 320, height: 300 },
-    component: CalendarWidget,
-    icon: Calendar,
-    description: 'Monthly calendar view'
-  },
+  calendar: calendarWidgetConfig,
   countdown: {
     type: 'countdown',
     name: 'Timer',
@@ -101,7 +127,13 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     maxSize: { width: 280, height: 280 },
     component: CountdownWidget,
     icon: Timer,
-    description: 'Pomodoro and countdown timer'
+    description: 'Pomodoro and countdown timer',
+    features: {
+      resizable: false,
+      fullscreenable: false,
+      hasSettings: true
+    },
+    version: '1.0.0'
   },
   news: {
     type: 'news',
@@ -111,7 +143,13 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     maxSize: { width: 400, height: 400 },
     component: NewsWidget,
     icon: Newspaper,
-    description: 'Latest news headlines'
+    description: 'Latest news headlines',
+    features: {
+      resizable: true,
+      fullscreenable: true,
+      hasSettings: true
+    },
+    version: '1.0.0'
   },
   calculator: {
     type: 'calculator',
@@ -121,6 +159,12 @@ export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
     maxSize: { width: 280, height: 340 },
     component: CalculatorWidget,
     icon: Calculator,
-    description: 'Basic calculator functionality'
+    description: 'Basic calculator functionality',
+    features: {
+      resizable: false,
+      fullscreenable: false,
+      hasSettings: false
+    },
+    version: '1.0.0'
   }
 };

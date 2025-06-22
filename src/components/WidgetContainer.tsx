@@ -1,30 +1,38 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Widget } from '../types/widget';
-import { Move, X } from 'lucide-react';
+import { Widget, WidgetConfig } from '../types/widget';
+import { Move, X, Maximize2, Minimize2, ArrowUpDown } from 'lucide-react';
 
 interface WidgetContainerProps {
   widget: Widget;
+  widgetConfig: WidgetConfig;
   children: React.ReactNode;
   onPositionChange: (id: string, position: { x: number; y: number }) => void;
+  onSizeChange: (id: string, size: { width: number; height: number }) => void;
   onRemove: (id: string) => void;
+  onToggleFullscreen: (id: string) => void;
   gridSize?: number;
 }
 
 export const WidgetContainer: React.FC<WidgetContainerProps> = ({
   widget,
+  widgetConfig,
   children,
   onPositionChange,
+  onSizeChange,
   onRemove,
+  onToggleFullscreen,
   gridSize = 20
 }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [resizeStartPos, setResizeStartPos] = useState({ x: 0, y: 0 });
+  const [resizeStartSize, setResizeStartSize] = useState({ width: 0, height: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Only start dragging if clicking on the drag handle or the widget header area
     const target = e.target as HTMLElement;
     const isDragHandle = target.closest('.drag-handle') || target.closest('.widget-header');
     
@@ -44,23 +52,47 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
     }
   };
 
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+    setResizeStartPos({ x: e.clientX, y: e.clientY });
+    setResizeStartSize({ width: widget.size.width, height: widget.size.height });
+  };
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging && containerRef.current) {
+      if (isDragging && containerRef.current && !widget.isFullscreen) {
         const dashboard = containerRef.current.closest('.dashboard');
         if (dashboard) {
           const dashboardRect = dashboard.getBoundingClientRect();
           const newX = Math.max(0, e.clientX - dashboardRect.left - dragOffset.x);
           const newY = Math.max(0, e.clientY - dashboardRect.top - dragOffset.y);
           
-          // Snap to grid
           const snappedX = Math.round(newX / gridSize) * gridSize;
           const snappedY = Math.round(newY / gridSize) * gridSize;
           
-          // Apply transform immediately for smooth dragging
           containerRef.current.style.transform = `translate(${snappedX}px, ${snappedY}px)`;
           containerRef.current.style.zIndex = '1000';
         }
+      } else if (isResizing && containerRef.current && !widget.isFullscreen) {
+        const deltaX = e.clientX - resizeStartPos.x;
+        const deltaY = e.clientY - resizeStartPos.y;
+        
+        const newWidth = Math.max(
+          widgetConfig.minSize.width,
+          Math.min(widgetConfig.maxSize.width, resizeStartSize.width + deltaX)
+        );
+        const newHeight = Math.max(
+          widgetConfig.minSize.height,
+          Math.min(widgetConfig.maxSize.height, resizeStartSize.height + deltaY)
+        );
+
+        const snappedWidth = Math.round(newWidth / gridSize) * gridSize;
+        const snappedHeight = Math.round(newHeight / gridSize) * gridSize;
+        
+        containerRef.current.style.width = `${snappedWidth}px`;
+        containerRef.current.style.height = `${snappedHeight}px`;
       }
     };
 
@@ -72,21 +104,24 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
           const newX = Math.max(0, e.clientX - dashboardRect.left - dragOffset.x);
           const newY = Math.max(0, e.clientY - dashboardRect.top - dragOffset.y);
           
-          // Snap to grid
           const snappedX = Math.round(newX / gridSize) * gridSize;
           const snappedY = Math.round(newY / gridSize) * gridSize;
           
-          // Update the widget position
           onPositionChange(widget.id, { x: snappedX, y: snappedY });
-          
-          // Reset z-index
           containerRef.current.style.zIndex = '';
         }
         setIsDragging(false);
       }
+      
+      if (isResizing && containerRef.current) {
+        const width = parseInt(containerRef.current.style.width);
+        const height = parseInt(containerRef.current.style.height);
+        onSizeChange(widget.id, { width, height });
+        setIsResizing(false);
+      }
     };
 
-    if (isDragging) {
+    if (isDragging || isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       document.body.style.userSelect = 'none';
@@ -97,24 +132,28 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
       document.removeEventListener('mouseup', handleMouseUp);
       document.body.style.userSelect = '';
     };
-  }, [isDragging, widget.id, onPositionChange, dragOffset, gridSize]);
+  }, [isDragging, isResizing, widget.id, onPositionChange, onSizeChange, dragOffset, resizeStartPos, resizeStartSize, gridSize, widget.isFullscreen, widgetConfig.minSize, widgetConfig.maxSize]);
 
   return (
     <div
       ref={containerRef}
       className={`absolute bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 ${
         isDragging ? 'scale-105 shadow-2xl' : ''
-      }`}
-      style={{
-        width: widget.size.width,
-        height: widget.size.height,
-        transform: `translate(${widget.position.x}px, ${widget.position.y}px)`,
-        zIndex: isDragging ? 1000 : 10,
-      }}
+      } ${widget.isFullscreen ? 'fixed inset-0 w-full h-full z-50 rounded-none' : ''}`}
+      style={
+        widget.isFullscreen
+          ? { transform: 'none' }
+          : {
+              width: widget.size.width,
+              height: widget.size.height,
+              transform: `translate(${widget.position.x}px, ${widget.position.y}px)`,
+              zIndex: isDragging || isResizing ? 1000 : 10,
+            }
+      }
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
-      {/* Widget Header with drag handle */}
+      {/* Widget Header with controls */}
       <div 
         className="widget-header absolute top-0 left-0 right-0 h-8 flex items-center justify-between px-3 cursor-move"
         onMouseDown={handleMouseDown}
@@ -123,6 +162,26 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
         <div className={`flex items-center gap-1 transition-opacity duration-200 ${
           showControls ? 'opacity-100' : 'opacity-0'
         }`}>
+          {widgetConfig.features?.resizable && !widget.isFullscreen && (
+            <div
+              className="p-1 rounded hover:bg-white/10 transition-colors cursor-se-resize"
+              onMouseDown={handleResizeStart}
+            >
+              <ArrowUpDown size={12} className="text-white/70" />
+            </div>
+          )}
+          {widgetConfig.features?.fullscreenable && (
+            <button
+              onClick={() => onToggleFullscreen(widget.id)}
+              className="p-1 text-white/70 hover:text-blue-400 hover:bg-white/10 rounded transition-colors"
+            >
+              {widget.isFullscreen ? (
+                <Minimize2 size={12} />
+              ) : (
+                <Maximize2 size={12} />
+              )}
+            </button>
+          )}
           <div className="drag-handle p-1 rounded hover:bg-white/10 transition-colors">
             <Move size={12} className="text-white/70" />
           </div>
@@ -142,6 +201,14 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
       <div className="h-full pt-8 p-4">
         {children}
       </div>
+
+      {/* Resize handle */}
+      {widgetConfig.features?.resizable && !widget.isFullscreen && (
+        <div
+          className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+          onMouseDown={handleResizeStart}
+        />
+      )}
     </div>
   );
 };
