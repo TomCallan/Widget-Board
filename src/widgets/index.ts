@@ -1,26 +1,5 @@
 import { WidgetConfig } from '../types/widget';
-import { ClockWidget } from './ClockWidget';
-import { WeatherWidget } from './WeatherWidget';
-import { TodoWidget } from './TodoWidget';
-import { QuickLinksWidget } from './QuickLinksWidget';
-import { SystemStatsWidget } from './SystemStatsWidget';
-import { NotesWidget } from './NotesWidget';
-import { CalendarWidget, calendarWidgetConfig } from './CalendarWidget';
-import { CountdownWidget } from './CountdownWidget';
-import { NewsWidget } from './NewsWidget';
-import { CalculatorWidget } from './CalculatorWidget';
-import { 
-  Clock, 
-  Cloud, 
-  CheckSquare, 
-  Link, 
-  Activity, 
-  StickyNote, 
-  Timer, 
-  Newspaper, 
-  Calculator 
-} from 'lucide-react';
-
+// Define widget categories
 export const WIDGET_CATEGORIES = {
   TIME: 'Time & Date',
   PRODUCTIVITY: 'Productivity',
@@ -29,162 +8,105 @@ export const WIDGET_CATEGORIES = {
   INFORMATION: 'Information'
 } as const;
 
-export const WIDGET_REGISTRY: Record<string, WidgetConfig> = {
-  clock: {
-    type: 'clock',
-    name: 'Clock',
-    defaultSize: { width: 280, height: 160 },
-    minSize: { width: 200, height: 120 },
-    maxSize: { width: 400, height: 200 },
-    component: ClockWidget,
-    icon: Clock,
-    description: 'Real-time clock with date display',
-    features: {
-      resizable: true,
-      fullscreenable: false,
-      hasSettings: false
-    },
-    version: '1.0.0',
-    categories: [WIDGET_CATEGORIES.TIME]
-  },
-  weather: {
-    type: 'weather',
-    name: 'Weather',
-    defaultSize: { width: 280, height: 180 },
-    minSize: { width: 240, height: 160 },
-    maxSize: { width: 320, height: 220 },
-    component: WeatherWidget,
-    icon: Cloud,
-    description: 'Current weather conditions',
-    features: {
-      resizable: true,
-      fullscreenable: false,
-      hasSettings: true
-    },
-    version: '1.0.0',
-    categories: [WIDGET_CATEGORIES.INFORMATION]
-  },
-  todo: {
-    type: 'todo',
-    name: 'Quick Tasks',
-    defaultSize: { width: 320, height: 280 },
-    minSize: { width: 280, height: 240 },
-    maxSize: { width: 400, height: 400 },
-    component: TodoWidget,
-    icon: CheckSquare,
-    description: 'Simple task management',
-    features: {
-      resizable: true,
-      fullscreenable: true,
-      hasSettings: false
-    },
-    version: '1.0.0',
-    categories: [WIDGET_CATEGORIES.PRODUCTIVITY]
-  },
-  quicklinks: {
-    type: 'quicklinks',
-    name: 'Quick Links',
-    defaultSize: { width: 280, height: 200 },
-    minSize: { width: 240, height: 180 },
-    maxSize: { width: 320, height: 240 },
-    component: QuickLinksWidget,
-    icon: Link,
-    description: 'Quick access to important links',
-    features: {
-      resizable: true,
-      fullscreenable: false,
-      hasSettings: true
-    },
-    version: '1.0.0',
-    categories: [WIDGET_CATEGORIES.PRODUCTIVITY]
-  },
-  systemstats: {
-    type: 'systemstats',
-    name: 'System Stats',
-    defaultSize: { width: 280, height: 200 },
-    minSize: { width: 240, height: 180 },
-    maxSize: { width: 320, height: 240 },
-    component: SystemStatsWidget,
-    icon: Activity,
-    description: 'System performance monitoring',
-    features: {
-      resizable: true,
-      fullscreenable: true,
-      hasSettings: false
-    },
-    version: '1.0.0',
-    categories: [WIDGET_CATEGORIES.SYSTEM]
-  },
-  notes: {
-    type: 'notes',
-    name: 'Sticky Notes',
-    defaultSize: { width: 300, height: 280 },
-    minSize: { width: 260, height: 240 },
-    maxSize: { width: 400, height: 400 },
-    component: NotesWidget,
-    icon: StickyNote,
-    description: 'Quick notes and reminders',
-    features: {
-      resizable: true,
-      fullscreenable: true,
-      hasSettings: false
-    },
-    version: '1.0.0',
-    categories: [WIDGET_CATEGORIES.PRODUCTIVITY]
-  },
-  calendar: {
-    ...calendarWidgetConfig,
-    categories: [WIDGET_CATEGORIES.TIME, WIDGET_CATEGORIES.PRODUCTIVITY]
-  },
-  countdown: {
-    type: 'countdown',
-    name: 'Timer',
-    defaultSize: { width: 240, height: 240 },
-    minSize: { width: 200, height: 200 },
-    maxSize: { width: 280, height: 280 },
-    component: CountdownWidget,
-    icon: Timer,
-    description: 'Pomodoro and countdown timer',
-    features: {
-      resizable: false,
-      fullscreenable: false,
-      hasSettings: true
-    },
-    version: '1.0.0',
-    categories: [WIDGET_CATEGORIES.TIME, WIDGET_CATEGORIES.TOOLS]
-  },
-  news: {
-    type: 'news',
-    name: 'News Feed',
-    defaultSize: { width: 320, height: 300 },
-    minSize: { width: 280, height: 260 },
-    maxSize: { width: 400, height: 400 },
-    component: NewsWidget,
-    icon: Newspaper,
-    description: 'Latest news headlines',
-    features: {
-      resizable: true,
-      fullscreenable: true,
-      hasSettings: true
-    },
-    version: '1.0.0',
-    categories: [WIDGET_CATEGORIES.INFORMATION]
-  },
-  calculator: {
-    type: 'calculator',
-    name: 'Calculator',
-    defaultSize: { width: 240, height: 300 },
-    minSize: { width: 200, height: 260 },
-    maxSize: { width: 280, height: 340 },
-    component: CalculatorWidget,
-    icon: Calculator,
-    description: 'Basic calculator functionality',
-    features: {
-      resizable: false,
-      fullscreenable: false,
-      hasSettings: false
-    },
-    version: '1.0.0',
-    categories: [WIDGET_CATEGORIES.TOOLS]
+// Initialize registries
+let BASE_WIDGETS: Record<string, WidgetConfig> = {};
+let CUSTOM_WIDGETS: Record<string, WidgetConfig> = {};
+let WIDGET_REGISTRY: Record<string, WidgetConfig> = {};
+
+// Helper function to load widgets from a directory
+async function loadWidgetsFromDirectory(isBase: boolean) {
+  const modules = isBase 
+    ? import.meta.glob('./base/*.tsx', { eager: true })
+    : import.meta.glob('./custom/*.tsx', { eager: true });
+
+  const loadedWidgets: Record<string, WidgetConfig> = {};
+
+  for (const path in modules) {
+    const module = modules[path] as any;
+    
+    // Skip non-widget files (like index.ts)
+    if (!path.endsWith('.tsx')) continue;
+
+    // Find the widget config in the module
+    const configKey = Object.keys(module).find(key => 
+      key.toLowerCase().includes('config') || 
+      (module[key] && typeof module[key] === 'object' && 'type' in module[key])
+    );
+
+    if (!configKey) {
+      console.warn(`No widget config found in ${path}`);
+      continue;
+    }
+
+    const config = module[configKey] as WidgetConfig;
+    
+    // Convert category strings to match WIDGET_CATEGORIES values
+    if (config.categories) {
+      config.categories = config.categories.map(category => {
+        // Find the matching category from WIDGET_CATEGORIES
+        const matchingCategory = Object.entries(WIDGET_CATEGORIES).find(
+          ([_, value]) => value === category
+        );
+        return matchingCategory ? matchingCategory[1] : category;
+      });
+    }
+
+    loadedWidgets[config.type] = config;
   }
-};
+
+  return loadedWidgets;
+}
+
+// Function to initialize all widgets
+export async function initializeWidgets() {
+  // Load both base and custom widgets
+  const [baseWidgets, customWidgets] = await Promise.all([
+    loadWidgetsFromDirectory(true),
+    loadWidgetsFromDirectory(false)
+  ]);
+
+  // Update the registries
+  BASE_WIDGETS = baseWidgets;
+  CUSTOM_WIDGETS = customWidgets;
+  
+  // Update the combined registry
+  WIDGET_REGISTRY = {
+    ...BASE_WIDGETS,
+    ...CUSTOM_WIDGETS
+  };
+
+  return WIDGET_REGISTRY;
+}
+
+// Function to register a new custom widget
+export function registerCustomWidget(config: WidgetConfig) {
+  if (BASE_WIDGETS[config.type]) {
+    throw new Error(`Widget type "${config.type}" already exists in base widgets`);
+  }
+  if (CUSTOM_WIDGETS[config.type]) {
+    throw new Error(`Widget type "${config.type}" already exists in custom widgets`);
+  }
+  CUSTOM_WIDGETS[config.type] = config;
+  WIDGET_REGISTRY[config.type] = config;
+}
+
+// Export the registries
+export { WIDGET_REGISTRY };
+
+// Export individual widget types for type safety
+export type WidgetType = keyof typeof WIDGET_REGISTRY;
+
+// Export categories for filtering
+export type WidgetCategory = typeof WIDGET_CATEGORIES[keyof typeof WIDGET_CATEGORIES];
+
+// Helper function to get widgets by category
+export function getWidgetsByCategory(category: WidgetCategory): WidgetConfig[] {
+  return Object.values(WIDGET_REGISTRY).filter(widget => 
+    widget.categories?.includes(category)
+  );
+}
+
+// Helper function to check if a widget is custom
+export function isCustomWidget(type: string): boolean {
+  return type in CUSTOM_WIDGETS;
+}

@@ -1,29 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { WidgetProps } from '../types/widget';
+import { WidgetProps, WidgetConfig } from '../../types/widget';
 import { Timer, Play, Pause, RotateCcw } from 'lucide-react';
 
+interface CountdownState {
+  timeLeft: number;
+  isRunning: boolean;
+  duration: number;
+}
+
 export const CountdownWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
-  const [timeLeft, setTimeLeft] = useState(widget.config.timeLeft || 25 * 60); // Default 25 minutes
-  const [isRunning, setIsRunning] = useState(false);
-  const [initialTime, setInitialTime] = useState(widget.config.initialTime || 25 * 60);
+  const [state, setState] = useState<CountdownState>(() => ({
+    timeLeft: widget.config.timeLeft ?? 1500, // 25 minutes in seconds
+    isRunning: false,
+    duration: widget.config.duration ?? 1500
+  }));
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
-    if (isRunning && timeLeft > 0) {
+    if (state.isRunning && state.timeLeft > 0) {
       interval = setInterval(() => {
-        setTimeLeft(prev => {
-          const newTime = prev - 1;
+        setState(prev => {
+          const newTime = prev.timeLeft - 1;
           onUpdate(widget.id, { config: { ...widget.config, timeLeft: newTime } });
-          return newTime;
+          return { ...prev, timeLeft: newTime };
         });
       }, 1000);
-    } else if (timeLeft === 0) {
-      setIsRunning(false);
+    } else if (state.timeLeft === 0) {
+      setState(prev => ({ ...prev, isRunning: false }));
     }
     
     return () => clearInterval(interval);
-  }, [isRunning, timeLeft, widget.id, widget.config, onUpdate]);
+  }, [state.isRunning, state.timeLeft, widget.id, widget.config, onUpdate]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -32,30 +40,27 @@ export const CountdownWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => 
   };
 
   const toggleTimer = () => {
-    setIsRunning(!isRunning);
+    setState(prev => ({ ...prev, isRunning: !prev.isRunning }));
   };
 
   const resetTimer = () => {
-    setIsRunning(false);
-    setTimeLeft(initialTime);
-    onUpdate(widget.id, { config: { ...widget.config, timeLeft: initialTime } });
+    setState(prev => ({ ...prev, isRunning: false, timeLeft: state.duration }));
+    onUpdate(widget.id, { config: { ...widget.config, timeLeft: state.duration } });
   };
 
   const setPresetTime = (minutes: number) => {
     const seconds = minutes * 60;
-    setTimeLeft(seconds);
-    setInitialTime(seconds);
-    setIsRunning(false);
+    setState(prev => ({ ...prev, timeLeft: seconds, duration: seconds }));
     onUpdate(widget.id, { 
       config: { 
         ...widget.config, 
         timeLeft: seconds, 
-        initialTime: seconds 
+        duration: seconds 
       } 
     });
   };
 
-  const progress = initialTime > 0 ? ((initialTime - timeLeft) / initialTime) * 100 : 0;
+  const progress = state.duration > 0 ? ((state.duration - state.timeLeft) / state.duration) * 100 : 0;
 
   return (
     <div className="h-full flex flex-col items-center justify-center text-white">
@@ -75,7 +80,7 @@ export const CountdownWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => 
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <div className="text-lg font-mono font-bold">{formatTime(timeLeft)}</div>
+            <div className="text-lg font-mono font-bold">{formatTime(state.timeLeft)}</div>
           </div>
         </div>
       </div>
@@ -85,12 +90,12 @@ export const CountdownWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => 
         <button
           onClick={toggleTimer}
           className={`p-2 rounded-full transition-colors ${
-            isRunning 
+            state.isRunning 
               ? 'bg-red-500 hover:bg-red-600' 
               : 'bg-green-500 hover:bg-green-600'
           }`}
         >
-          {isRunning ? <Pause size={16} /> : <Play size={16} />}
+          {state.isRunning ? <Pause size={16} /> : <Play size={16} />}
         </button>
         <button
           onClick={resetTimer}
@@ -114,4 +119,22 @@ export const CountdownWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => 
       </div>
     </div>
   );
+};
+
+export const countdownWidgetConfig: WidgetConfig = {
+  type: 'countdown',
+  name: 'Timer',
+  defaultSize: { width: 240, height: 240 },
+  minSize: { width: 200, height: 200 },
+  maxSize: { width: 280, height: 280 },
+  component: CountdownWidget,
+  icon: Timer,
+  description: 'Pomodoro and countdown timer',
+  features: {
+    resizable: false,
+    fullscreenable: false,
+    hasSettings: true
+  },
+  version: '1.0.0',
+  categories: ['Time & Date', 'Tools']
 };

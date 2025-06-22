@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { WidgetProps } from '../types/widget';
+import { WidgetProps, WidgetConfig } from '../../types/widget';
 import {
   Cloud, Sun, CloudRain, Thermometer, Wind, Droplets,
   MapPin, AlertTriangle, ChevronDown, ChevronRight, Plus,
@@ -431,4 +431,22 @@ export const WeatherWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
       )}
     </div>
   );
+};
+
+export const weatherWidgetConfig: WidgetConfig = {
+  type: 'weather',
+  name: 'Weather',
+  defaultSize: { width: 280, height: 180 },
+  minSize: { width: 240, height: 160 },
+  maxSize: { width: 320, height: 220 },
+  component: WeatherWidget,
+  icon: Cloud,
+  description: 'Current weather conditions',
+  features: {
+    resizable: true,
+    fullscreenable: false,
+    hasSettings: true
+  },
+  version: '1.0.0',
+  categories: ['Information']
 };

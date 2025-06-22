@@ -6,18 +6,20 @@ interface WidgetSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   onAddWidget: (type: string) => void;
+  registry?: typeof WIDGET_REGISTRY;
 }
 
 export const WidgetSelector: React.FC<WidgetSelectorProps> = ({
   isOpen,
   onClose,
-  onAddWidget
+  onAddWidget,
+  registry = WIDGET_REGISTRY
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const filteredWidgets = useMemo(() => {
-    return Object.values(WIDGET_REGISTRY).filter((config) => {
+    return Object.values(registry).filter((config) => {
       const matchesSearch = 
         config.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         config.description.toLowerCase().includes(searchQuery.toLowerCase());
@@ -28,7 +30,7 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({
 
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, registry]);
 
   if (!isOpen) return null;
 
@@ -130,6 +132,15 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({
                               <Settings size={12} className="text-purple-400" />
                             </div>
                           )}
+                        </div>
+                        <div 
+                          className={`text-xs px-2 py-0.5 rounded ${
+                            config.type.startsWith('custom-')
+                              ? 'bg-emerald-500/20 text-emerald-400'
+                              : 'bg-blue-500/20 text-blue-400'
+                          }`}
+                        >
+                          {config.type.startsWith('custom-') ? 'Custom' : 'Base'}
                         </div>
                         {config.categories?.map((category) => (
                           <div

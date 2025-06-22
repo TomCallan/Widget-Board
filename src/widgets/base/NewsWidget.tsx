@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { WidgetProps } from '../types/widget';
+import { WidgetProps, WidgetConfig } from '../../types/widget';
 import { Newspaper, ExternalLink, RefreshCw } from 'lucide-react';
 
 export const NewsWidget: React.FC<WidgetProps> = ({ widget }) => {
@@ -81,4 +81,22 @@ export const NewsWidget: React.FC<WidgetProps> = ({ widget }) => {
       </div>
     </div>
   );
+};
+
+export const newsWidgetConfig: WidgetConfig = {
+  type: 'news',
+  name: 'News Feed',
+  defaultSize: { width: 320, height: 300 },
+  minSize: { width: 280, height: 260 },
+  maxSize: { width: 400, height: 400 },
+  component: NewsWidget,
+  icon: Newspaper,
+  description: 'Latest news headlines',
+  features: {
+    resizable: true,
+    fullscreenable: true,
+    hasSettings: true
+  },
+  version: '1.0.0',
+  categories: ['Information']
 };

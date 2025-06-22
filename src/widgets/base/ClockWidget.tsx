@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { WidgetProps } from '../types/widget';
+import { WidgetProps, WidgetConfig } from '../../types/widget';
 import { Clock } from 'lucide-react';
 
 export const ClockWidget: React.FC<WidgetProps> = ({ widget }) => {
@@ -51,4 +51,22 @@ export const ClockWidget: React.FC<WidgetProps> = ({ widget }) => {
       </div>
     </div>
   );
+};
+
+export const clockWidgetConfig: WidgetConfig = {
+  type: 'clock',
+  name: 'Clock',
+  defaultSize: { width: 280, height: 160 },
+  minSize: { width: 200, height: 120 },
+  maxSize: { width: 400, height: 200 },
+  component: ClockWidget,
+  icon: Clock,
+  description: 'Real-time clock with date display',
+  features: {
+    resizable: true,
+    fullscreenable: false,
+    hasSettings: false
+  },
+  version: '1.0.0',
+  categories: ['Time & Date']
 };

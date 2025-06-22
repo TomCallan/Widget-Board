@@ -1,6 +1,6 @@
 import React from 'react';
-import { WidgetProps } from '../types/widget';
-import { ExternalLink, Mail, Calendar, FileText, Github } from 'lucide-react';
+import { WidgetProps, WidgetConfig } from '../../types/widget';
+import { ExternalLink, Mail, Calendar, FileText, Github, Link } from 'lucide-react';
 
 export const QuickLinksWidget: React.FC<WidgetProps> = ({ widget }) => {
   const links = [
@@ -28,4 +28,22 @@ export const QuickLinksWidget: React.FC<WidgetProps> = ({ widget }) => {
       </div>
     </div>
   );
+};
+
+export const quickLinksWidgetConfig: WidgetConfig = {
+  type: 'quicklinks',
+  name: 'Quick Links',
+  defaultSize: { width: 280, height: 200 },
+  minSize: { width: 240, height: 180 },
+  maxSize: { width: 320, height: 240 },
+  component: QuickLinksWidget,
+  icon: Link,
+  description: 'Quick access to important links',
+  features: {
+    resizable: true,
+    fullscreenable: false,
+    hasSettings: true
+  },
+  version: '1.0.0',
+  categories: ['Productivity']
 };

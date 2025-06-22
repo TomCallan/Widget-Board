@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { WidgetProps } from '../types/widget';
+import { WidgetProps, WidgetConfig } from '../../types/widget';
 import { 
   StickyNote, Plus, X, Search, Tag, Download, Upload, 
   Bold, Italic, Underline, List, Image as ImageIcon,
@@ -413,4 +413,22 @@ export const NotesWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
       </div>
     </div>
   );
+};
+
+export const notesWidgetConfig: WidgetConfig = {
+  type: 'notes',
+  name: 'Sticky Notes',
+  defaultSize: { width: 300, height: 280 },
+  minSize: { width: 260, height: 240 },
+  maxSize: { width: 400, height: 400 },
+  component: NotesWidget,
+  icon: StickyNote,
+  description: 'Quick notes and reminders',
+  features: {
+    resizable: true,
+    fullscreenable: true,
+    hasSettings: false
+  },
+  version: '1.0.0',
+  categories: ['Productivity']
 };

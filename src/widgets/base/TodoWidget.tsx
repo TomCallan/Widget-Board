@@ -1,48 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { WidgetProps } from '../types/widget';
-import { Plus, Check, X, Calendar, Clock, ChevronDown, Tag, AlertCircle, RepeatIcon, FileText } from 'lucide-react';
+import { WidgetProps, WidgetConfig } from '../../types/widget';
+import { Plus, Check, X, Calendar, Clock, ChevronDown, Tag, AlertCircle, RepeatIcon, FileText, CheckSquare } from 'lucide-react';
 
 interface Task {
-  id: number;
-  text: string;
+  id: string;
+  title: string;
   completed: boolean;
-  category?: string;
   dueDate?: Date;
-  priority: 'low' | 'medium' | 'high';
+  priority?: 'low' | 'medium' | 'high';
+  tags?: string[];
   notes?: string;
-  recurring?: {
+  repeat?: {
     frequency: 'daily' | 'weekly' | 'monthly';
     nextDue?: Date;
   };
 }
 
 export const TodoWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
-  const [todos, setTodos] = useState<Task[]>(widget.config.todos || [
-    {
-      id: 1,
-      text: 'Review morning emails',
-      completed: false,
-      category: 'Work',
-      priority: 'medium',
-      dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000)
-    },
-    {
-      id: 2,
-      text: 'Prepare for 10am meeting',
-      completed: false,
-      category: 'Work',
-      priority: 'high',
-      dueDate: new Date(),
-      notes: 'Review Q3 metrics'
-    },
-    {
-      id: 3,
-      text: 'Update project status',
-      completed: true,
-      category: 'Work',
-      priority: 'low'
-    }
-  ]);
+  const [tasks, setTasks] = useState<Task[]>(widget.config.tasks || []);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [editingTask, setEditingTask] = useState<string | null>(null);
+  const [showDetails, setShowDetails] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
+  const [editTitle, setEditTitle] = useState('');
+  const [editDueDate, setEditDueDate] = useState<string>('');
+  const [editPriority, setEditPriority] = useState<'low' | 'medium' | 'high' | ''>('');
+  const [editTags, setEditTags] = useState<string>('');
+  const [editNotes, setEditNotes] = useState('');
+  const [editRepeat, setEditRepeat] = useState<'daily' | 'weekly' | 'monthly' | ''>('');
 
   const [newTodo, setNewTodo] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -52,15 +37,15 @@ export const TodoWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
     category: ''
   });
 
-  const categories = Array.from(new Set(todos.map(todo => todo.category).filter(Boolean)));
+  const categories = Array.from(new Set(tasks.map(task => task.category).filter(Boolean)));
 
   useEffect(() => {
     // Check for recurring tasks
     const now = new Date();
-    const updatedTodos = todos.map(todo => {
-      if (todo.recurring?.nextDue && new Date(todo.recurring.nextDue) <= now) {
-        const frequency = todo.recurring.frequency;
-        let nextDue = new Date(todo.recurring.nextDue);
+    const updatedTasks = tasks.map(task => {
+      if (task.repeat?.nextDue && new Date(task.repeat.nextDue) <= now) {
+        const frequency = task.repeat.frequency;
+        let nextDue = new Date(task.repeat.nextDue);
         
         switch (frequency) {
           case 'daily':
@@ -75,56 +60,56 @@ export const TodoWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
         }
 
         return {
-          ...todo,
+          ...task,
           completed: false,
-          recurring: {
-            ...todo.recurring,
+          repeat: {
+            ...task.repeat,
             nextDue
           }
         };
       }
-      return todo;
+      return task;
     });
 
-    if (JSON.stringify(updatedTodos) !== JSON.stringify(todos)) {
-      setTodos(updatedTodos);
-      onUpdate(widget.id, { config: { ...widget.config, todos: updatedTodos } });
+    if (JSON.stringify(updatedTasks) !== JSON.stringify(tasks)) {
+      setTasks(updatedTasks);
+      onUpdate(widget.id, { config: { ...widget.config, tasks: updatedTasks } });
     }
-  }, [todos, widget.id, widget.config, onUpdate]);
+  }, [tasks, widget.id, widget.config, onUpdate]);
 
   const addTodo = () => {
     if (newTaskData.text?.trim()) {
       const newTodo: Task = {
-        id: Date.now(),
+        id: Date.now().toString(),
         text: newTaskData.text.trim(),
         completed: false,
         category: newTaskData.category,
         dueDate: newTaskData.dueDate,
         priority: newTaskData.priority || 'medium',
         notes: newTaskData.notes,
-        recurring: newTaskData.recurring
+        repeat: newTaskData.repeat
       };
 
-      const updatedTodos = [...todos, newTodo];
-      setTodos(updatedTodos);
-      onUpdate(widget.id, { config: { ...widget.config, todos: updatedTodos } });
+      const updatedTasks = [...tasks, newTodo];
+      setTasks(updatedTasks);
+      onUpdate(widget.id, { config: { ...widget.config, tasks: updatedTasks } });
       setNewTaskData({ priority: 'medium' });
       setShowAddForm(false);
     }
   };
 
-  const toggleTodo = (id: number) => {
-    const updatedTodos = todos.map(todo =>
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
+  const toggleTodo = (id: string) => {
+    const updatedTasks = tasks.map(task =>
+      task.id === id ? { ...task, completed: !task.completed } : task
     );
-    setTodos(updatedTodos);
-    onUpdate(widget.id, { config: { ...widget.config, todos: updatedTodos } });
+    setTasks(updatedTasks);
+    onUpdate(widget.id, { config: { ...widget.config, tasks: updatedTasks } });
   };
 
-  const removeTodo = (id: number) => {
-    const updatedTodos = todos.filter(todo => todo.id !== id);
-    setTodos(updatedTodos);
-    onUpdate(widget.id, { config: { ...widget.config, todos: updatedTodos } });
+  const removeTodo = (id: string) => {
+    const updatedTasks = tasks.filter(task => task.id !== id);
+    setTasks(updatedTasks);
+    onUpdate(widget.id, { config: { ...widget.config, tasks: updatedTasks } });
   };
 
   const getPriorityColor = (priority: string) => {
@@ -146,14 +131,14 @@ export const TodoWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
   };
 
   const calculateProgress = () => {
-    if (todos.length === 0) return 0;
-    const completed = todos.filter(todo => todo.completed).length;
-    return Math.round((completed / todos.length) * 100);
+    if (tasks.length === 0) return 0;
+    const completed = tasks.filter(task => task.completed).length;
+    return Math.round((completed / tasks.length) * 100);
   };
 
-  const filteredTodos = selectedCategory
-    ? todos.filter(todo => todo.category === selectedCategory)
-    : todos;
+  const filteredTasks = selectedCategory
+    ? tasks.filter(task => task.category === selectedCategory)
+    : tasks;
 
   return (
     <div className="h-full flex flex-col text-white">
@@ -243,19 +228,19 @@ export const TodoWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
               />
               
               <select
-                value={newTaskData.recurring?.frequency ?? ''}
+                value={newTaskData.repeat?.frequency ?? ''}
                 onChange={(e) => {
                   const value = e.target.value;
                   if (value === '') {
                     setNewTaskData({
                       ...newTaskData,
-                      recurring: undefined
+                      repeat: undefined
                     });
                   } else {
                     setNewTaskData({
                       ...newTaskData,
-                      recurring: {
-                        frequency: value as Task['recurring']['frequency'],
+                      repeat: {
+                        frequency: value as Task['repeat']['frequency'],
                         nextDue: undefined
                       }
                     });
@@ -299,49 +284,49 @@ export const TodoWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
       </div>
       
       <div className="flex-1 overflow-y-auto space-y-1">
-        {filteredTodos.map(todo => (
-          <div key={todo.id} className="group bg-white/5 rounded p-2">
+        {filteredTasks.map(task => (
+          <div key={task.id} className="group bg-white/5 rounded p-2">
             <div className="flex items-center gap-2">
               <button
-                onClick={() => toggleTodo(todo.id)}
-                className={`p-1 rounded ${todo.completed ? 'bg-green-500' : 'bg-white/10 border border-white/20'}`}
+                onClick={() => toggleTodo(task.id)}
+                className={`p-1 rounded ${task.completed ? 'bg-green-500' : 'bg-white/10 border border-white/20'}`}
               >
-                {todo.completed && <Check size={12} />}
+                {task.completed && <Check size={12} />}
               </button>
               
               <div className="flex-1">
-                <div className={`text-sm ${todo.completed ? 'line-through text-white/50' : ''}`}>
-                  {todo.text}
+                <div className={`text-sm ${task.completed ? 'line-through text-white/50' : ''}`}>
+                  {task.text}
                 </div>
                 
                 <div className="flex items-center gap-2 mt-1 text-xs text-white/50">
-                  {todo.category && (
+                  {task.category && (
                     <span className="flex items-center gap-1">
                       <Tag size={10} />
-                      {todo.category}
+                      {task.category}
                     </span>
                   )}
                   
-                  {todo.dueDate && (
+                  {task.dueDate && (
                     <span className="flex items-center gap-1">
                       <Calendar size={10} />
-                      {formatDate(todo.dueDate)}
+                      {formatDate(task.dueDate)}
                     </span>
                   )}
                   
-                  {todo.recurring && (
+                  {task.repeat && (
                     <span className="flex items-center gap-1">
                       <RepeatIcon size={10} />
-                      {todo.recurring.frequency}
+                      {task.repeat.frequency}
                     </span>
                   )}
                   
-                  <span className={`flex items-center gap-1 ${getPriorityColor(todo.priority)}`}>
+                  <span className={`flex items-center gap-1 ${getPriorityColor(task.priority || 'medium')}`}>
                     <AlertCircle size={10} />
-                    {todo.priority}
+                    {task.priority || 'Medium'}
                   </span>
                   
-                  {todo.notes && (
+                  {task.notes && (
                     <span className="flex items-center gap-1">
                       <FileText size={10} />
                       notes
@@ -351,7 +336,7 @@ export const TodoWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
               </div>
               
               <button
-                onClick={() => removeTodo(todo.id)}
+                onClick={() => removeTodo(task.id)}
                 className="p-1 text-white/50 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
               >
                 <X size={12} />
@@ -362,4 +347,22 @@ export const TodoWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
       </div>
     </div>
   );
+};
+
+export const todoWidgetConfig: WidgetConfig = {
+  type: 'todo',
+  name: 'Quick Tasks',
+  defaultSize: { width: 320, height: 280 },
+  minSize: { width: 280, height: 240 },
+  maxSize: { width: 400, height: 400 },
+  component: TodoWidget,
+  icon: CheckSquare,
+  description: 'Simple task management',
+  features: {
+    resizable: true,
+    fullscreenable: true,
+    hasSettings: false
+  },
+  version: '1.0.0',
+  categories: ['Productivity']
 };

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Widget, Dashboard } from './types/widget';
 import { WidgetContainer } from './components/WidgetContainer';
 import { WidgetSelector } from './components/WidgetSelector';
 import { DashboardTabs } from './components/DashboardTabs';
-import { WIDGET_REGISTRY } from './widgets';
+import { WIDGET_REGISTRY, initializeWidgets } from './widgets';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { Plus, Settings, Palette, X } from 'lucide-react';
 import { ColorScheme, COLOR_SCHEMES } from './types/widget';
@@ -55,10 +55,32 @@ const DEFAULT_DASHBOARD: Dashboard = {
 };
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [widgetRegistry, setWidgetRegistry] = useState<typeof WIDGET_REGISTRY>({});
   const [dashboards, setDashboards] = useLocalStorage<Dashboard[]>('dashboards', [DEFAULT_DASHBOARD]);
   const [currentDashboardId, setCurrentDashboardId] = useLocalStorage<string>('current-dashboard-id', DEFAULT_DASHBOARD.id);
   const [showWidgetSelector, setShowWidgetSelector] = useState(false);
   const [showColorSchemeSelector, setShowColorSchemeSelector] = useState(false);
+
+  useEffect(() => {
+    // Initialize widgets when the app starts
+    initializeWidgets().then((registry) => {
+      setWidgetRegistry(registry);
+      setIsLoading(false);
+    }).catch(error => {
+      console.error('Failed to initialize widgets:', error);
+      setIsLoading(false);
+    });
+  }, []);
+
+  // Early return while loading
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading widgets...</div>
+      </div>
+    );
+  }
 
   const currentDashboard = dashboards.find(d => d.id === currentDashboardId) || dashboards[0];
   const scheme = COLOR_SCHEMES[currentDashboard.colorScheme] || COLOR_SCHEMES['purple'];
@@ -149,9 +171,9 @@ function App() {
     const newWidget: Widget = {
       id: Date.now().toString(),
       type,
-      title: WIDGET_REGISTRY[type].name,
+      title: widgetRegistry[type].name,
       position: { x: 40, y: 40 },
-      size: WIDGET_REGISTRY[type].defaultSize,
+      size: widgetRegistry[type].defaultSize,
       config: {},
       enabled: true
     };
@@ -260,7 +282,7 @@ function App() {
       {/* Dashboard */}
       <main className="dashboard relative z-10 px-6 pb-6" style={{ minHeight: 'calc(100vh - 120px)' }}>
         {currentDashboard.widgets.map(widget => {
-          const config = WIDGET_REGISTRY[widget.type];
+          const config = widgetRegistry[widget.type];
           if (!config) return null;
 
           const WidgetComponent = config.component;
@@ -302,11 +324,12 @@ function App() {
         )}
       </main>
 
-      {/* Widget Selector Modal */}
+      {/* Widget Selector */}
       <WidgetSelector
         isOpen={showWidgetSelector}
         onClose={() => setShowWidgetSelector(false)}
         onAddWidget={handleAddWidget}
+        registry={widgetRegistry}
       />
 
       {/* Color Scheme Selector Modal */}

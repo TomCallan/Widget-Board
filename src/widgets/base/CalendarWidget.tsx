@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { WidgetProps } from '../types/widget';
+import { WidgetProps, WidgetConfig } from '../../types/widget';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const CalendarWidget: React.FC<WidgetProps> = ({ widget }) => {
@@ -159,19 +159,20 @@ export const CalendarWidget: React.FC<WidgetProps> = ({ widget }) => {
   );
 };
 
-export const calendarWidgetConfig = {
+export const calendarWidgetConfig: WidgetConfig = {
   type: 'calendar',
   name: 'Calendar',
-  description: 'A calendar widget that shows the current month and allows you to track dates',
-  defaultSize: { width: 300, height: 280 },
-  minSize: { width: 250, height: 250 },
-  maxSize: { width: 800, height: 800 },
+  defaultSize: { width: 300, height: 300 },
+  minSize: { width: 260, height: 260 },
+  maxSize: { width: 400, height: 400 },
   component: CalendarWidget,
   icon: CalendarIcon,
-  version: '1.0.0',
+  description: 'Monthly calendar with event support',
   features: {
     resizable: true,
     fullscreenable: true,
-    hasSettings: false
-  }
+    hasSettings: true
+  },
+  version: '1.0.0',
+  categories: ['Time & Date', 'Productivity']
 };

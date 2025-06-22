@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { WidgetProps } from '../types/widget';
+import { WidgetProps, WidgetConfig } from '../../types/widget';
 import { Calculator, Delete } from 'lucide-react';
 
 export const CalculatorWidget: React.FC<WidgetProps> = ({ widget }) => {
@@ -138,4 +138,22 @@ export const CalculatorWidget: React.FC<WidgetProps> = ({ widget }) => {
       </div>
     </div>
   );
+};
+
+export const calculatorWidgetConfig: WidgetConfig = {
+  type: 'calculator',
+  name: 'Calculator',
+  defaultSize: { width: 240, height: 300 },
+  minSize: { width: 200, height: 260 },
+  maxSize: { width: 280, height: 340 },
+  component: CalculatorWidget,
+  icon: Calculator,
+  description: 'Basic calculator functionality',
+  features: {
+    resizable: false,
+    fullscreenable: false,
+    hasSettings: false
+  },
+  version: '1.0.0',
+  categories: ['Tools']
 };
