@@ -1,13 +1,5 @@
 import { LucideIcon } from 'lucide-react';
 
-export interface DashboardPage {
-  id: string;
-  name: string;
-  widgets: Widget[];
-  icon?: LucideIcon;
-  color?: string;
-}
-
 export interface Widget {
   id: string;
   type: string;
@@ -71,4 +63,59 @@ export interface WidgetManifest extends Omit<WidgetConfig, 'component' | 'icon'>
   screenshots?: string[];
   categories?: string[];
   tags?: string[];
+}
+
+export type ColorScheme = {
+  name: string;
+  from: string;
+  via: string;
+  to: string;
+  accentColor: string;
+};
+
+export const COLOR_SCHEMES: Record<string, ColorScheme> = {
+  purple: {
+    name: 'Purple Dream',
+    from: 'from-slate-900',
+    via: 'via-purple-900',
+    to: 'to-slate-900',
+    accentColor: 'purple'
+  },
+  blue: {
+    name: 'Ocean Depths',
+    from: 'from-slate-900',
+    via: 'via-blue-900',
+    to: 'to-slate-900',
+    accentColor: 'blue'
+  },
+  green: {
+    name: 'Forest Night',
+    from: 'from-slate-900',
+    via: 'via-green-900',
+    to: 'to-slate-900',
+    accentColor: 'green'
+  },
+  rose: {
+    name: 'Sunset Glow',
+    from: 'from-slate-900',
+    via: 'via-rose-900',
+    to: 'to-slate-900',
+    accentColor: 'rose'
+  },
+  amber: {
+    name: 'Golden Hour',
+    from: 'from-slate-900',
+    via: 'via-amber-900',
+    to: 'to-slate-900',
+    accentColor: 'amber'
+  }
+};
+
+export interface Dashboard {
+  id: string;
+  name: string;
+  widgets: Widget[];
+  createdAt: number;
+  updatedAt: number;
+  colorScheme: string;
 }
