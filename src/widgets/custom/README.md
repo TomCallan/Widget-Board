@@ -85,4 +85,51 @@ Before registering your widget:
 - Check the widget development documentation
 - Look at base widgets for examples
 - Follow TypeScript types for guidance
-- Test thoroughly before deployment 
+- Test thoroughly before deployment
+
+# Custom Widget Creation Prompt
+
+## Widget Overview
+- Widget Name: [ENTER WIDGET NAME]
+- Description: [ENTER A BRIEF DESCRIPTION OF WHAT THE WIDGET DOES]
+- Primary Purpose: [EXPLAIN THE MAIN FUNCTIONALITY OR PROBLEM THIS WIDGET SOLVES]
+
+## Technical Requirements
+
+### Basic Configuration
+- Default Size: [SPECIFY WIDTH x HEIGHT IN PIXELS]
+- Minimum Size: [SPECIFY MINIMUM WIDTH x HEIGHT]
+- Maximum Size: [SPECIFY MAXIMUM WIDTH x HEIGHT]
+- Icon Suggestion: [SUGGEST A LUCIDE-REACT ICON THAT REPRESENTS THE WIDGET]
+
+### Features (Select Yes/No for each)
+- Resizable: [YES/NO]
+- Fullscreen Support: [YES/NO]
+- Settings Panel: [YES/NO]
+
+### State Management
+- What data needs to be stored in widget.config?: [LIST STATE REQUIREMENTS]
+- External API Dependencies: [LIST ANY EXTERNAL APIS NEEDED]
+- Local Storage Requirements: [SPECIFY IF AND WHAT DATA NEEDS TO BE PERSISTED]
+
+## User Interface
+- Main View Components: [LIST THE MAIN UI ELEMENTS]
+- Fullscreen View Differences (if applicable): [DESCRIBE ENHANCED FEATURES IN FULLSCREEN]
+- Interactive Elements: [DESCRIBE USER INTERACTIONS]
+- Responsive Design Requirements: [SPECIFY HOW THE WIDGET SHOULD ADAPT TO DIFFERENT SIZES]
+
+## Additional Information
+- Target Users: [DESCRIBE THE INTENDED USERS]
+- Use Cases: [LIST SPECIFIC USE CASES]
+- Special Requirements: [ANY ADDITIONAL REQUIREMENTS OR CONSIDERATIONS]
+
+## Optional Metadata
+- Author Name: [YOUR NAME]
+- Author Website: [YOUR WEBSITE]
+- License: [SPECIFY LICENSE]
+- Version: [SPECIFY INITIAL VERSION]
+- Categories: [LIST APPLICABLE CATEGORIES]
+- Tags: [LIST RELEVANT TAGS]
+
+## Example Usage Scenario
+[PROVIDE A BRIEF EXAMPLE OF HOW THE WIDGET WOULD BE USED IN A REAL-WORLD SCENARIO] 
