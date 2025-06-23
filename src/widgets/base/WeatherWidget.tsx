@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WidgetProps, WidgetConfig } from '../../types/widget';
+import { useAuthKeys } from '../../hooks/useAuthKeys';
 import {
   Cloud, Sun, CloudRain, Thermometer, Wind, Droplets,
   MapPin, AlertTriangle, ChevronDown, ChevronRight, Plus,
@@ -42,6 +43,9 @@ interface Location {
 }
 
 export const WeatherWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
+  const { getKeyValue } = useAuthKeys();
+  const apiKey = widget.config.apiKey ? getKeyValue(widget.config.apiKey) : null;
+
   const [locations, setLocations] = useState<Location[]>(widget.config.locations || [
     { id: '1', name: 'New York, NY', lat: 40.7128, lon: -74.0060, isDefault: true },
     { id: '2', name: 'London, UK', lat: 51.5074, lon: -0.1278 }
@@ -126,8 +130,14 @@ export const WeatherWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
       });
     }, 30000);
 
+    // Example of how you would use the API key
+    if (apiKey) {
+      // Make API call using the key
+      console.log('Would make API call with key:', apiKey);
+    }
+
     return () => clearInterval(interval);
-  }, []);
+  }, [apiKey]);
 
   const getWeatherIcon = (condition: string, size = 32) => {
     switch (condition) {
@@ -445,8 +455,35 @@ export const weatherWidgetConfig: WidgetConfig = {
   features: {
     resizable: true,
     fullscreenable: false,
-    hasSettings: true
+    hasSettings: true,
+    configurable: true,
+  },
+  configFields: {
+    apiKey: {
+      type: 'authKey',
+      label: 'Weather API Key',
+      description: 'Select your OpenWeatherMap API key',
+      service: 'OpenWeatherMap',
+      required: true,
+    },
+    location: {
+      type: 'text',
+      label: 'Default Location',
+      description: 'Enter a city name or coordinates',
+      defaultValue: 'London, UK',
+      required: true,
+    },
+    units: {
+      type: 'select',
+      label: 'Temperature Units',
+      options: [
+        { label: 'Celsius', value: 'metric' },
+        { label: 'Fahrenheit', value: 'imperial' },
+      ],
+      defaultValue: 'metric',
+      required: true,
+    },
   },
   version: '1.0.0',
-  categories: ['Information']
+  categories: ['Information'],
 };

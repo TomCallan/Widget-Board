@@ -2,13 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --transition-duration: 0.2s;
+  --widget-spacing: 16px;
+  --grid-opacity: 0.05;
+}
+
+.disable-animations * {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Add a grid background for widget alignment */
+.dashboard {
+  background-image: linear-gradient(to right, rgba(255, 255, 255, var(--grid-opacity)) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, var(--grid-opacity)) 1px, transparent 1px);
+  background-size: var(--widget-spacing) var(--widget-spacing);
+}
+
+/* Apply transition duration to all animated elements */
+.transition-colors,
+.transition-opacity,
+.transition-transform,
+.transition-all {
+  transition-duration: var(--transition-duration) !important;
+}
+
+/* Hide scrollbar but keep functionality */
 .hide-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
-  display: none;  /* Chrome, Safari and Opera */
+  display: none;
 }
 
 /* Smooth transitions for widget transformations */

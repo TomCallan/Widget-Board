@@ -17,6 +17,7 @@ This guide provides comprehensive documentation for creating widgets for the Das
 - [Best Practices](#best-practices)
 - [Example Widget](#example-widget)
 - [Publishing to Marketplace](#publishing-to-marketplace)
+- [API Key Management](#api-key-management)
 
 ## Getting Started
 
@@ -124,13 +125,15 @@ Available field types:
 
 ```typescript
 interface WidgetConfigField {
-  type: 'text' | 'number' | 'boolean' | 'select' | 'color';
+  type: 'text' | 'number' | 'boolean' | 'select' | 'color' | 'authKey';
   label: string;
   description?: string;
   default?: any;
   options?: { label: string; value: any }[]; // For select type
   min?: number; // For number type
   max?: number; // For number type
+  service?: string; // For authKey type
+  required?: boolean; // For authKey type
 }
 ```
 
@@ -162,6 +165,13 @@ configFields: {
     label: 'Accent Color',
     description: 'Widget highlight color',
     default: '#6366f1'
+  },
+  apiKey: {
+    type: 'authKey',
+    label: 'API Key',
+    description: 'Select your service API key',
+    service: 'ServiceName',
+    required: true,
   }
 }
 ```
@@ -465,4 +475,119 @@ For reference implementations, check out these base widgets:
 - `CalculatorWidget`: Complex state management
 - `SystemStatsWidget`: System integration
 
-Each example demonstrates different aspects of widget development and can be used as a starting point for your own widgets. 
+Each example demonstrates different aspects of widget development and can be used as a starting point for your own widgets.
+
+## API Key Management
+
+The dashboard includes a built-in API key management system that allows widgets to securely use API keys for external services.
+
+### Adding API Key Support to a Widget
+
+1. Add an auth key field to your widget configuration:
+
+```typescript
+configFields: {
+  apiKey: {
+    type: 'authKey',
+    label: 'API Key',
+    description: 'Select your service API key',
+    service: 'ServiceName',
+    required: true,
+  }
+}
+```
+
+2. Access the key in your widget component:
+
+```typescript
+import { useAuthKeys } from '../hooks/useAuthKeys';
+
+export const MyWidget: React.FC<WidgetProps> = ({ widget }) => {
+  const { getKeyValue } = useAuthKeys();
+  const apiKey = widget.config.apiKey ? getKeyValue(widget.config.apiKey) : null;
+
+  useEffect(() => {
+    if (apiKey) {
+      // Make API calls using the key
+      fetchData(apiKey);
+    }
+  }, [apiKey]);
+
+  // ... rest of the component
+};
+```
+
+### Auth Key Features
+
+- **Secure Storage**: Keys are stored securely in the browser's local storage
+- **Service-Specific**: Keys can be organized by service
+- **Key Management UI**: Users can add, remove, and manage keys through the settings dialog
+- **Key Selection**: Widgets can filter keys by service
+- **Automatic Updates**: Widgets automatically update when keys change
+
+### Example: Weather Widget with API Key
+
+```typescript
+export const weatherWidgetConfig: WidgetConfig = {
+  // ... other config properties ...
+  features: {
+    configurable: true,
+  },
+  configFields: {
+    apiKey: {
+      type: 'authKey',
+      label: 'Weather API Key',
+      description: 'Select your OpenWeatherMap API key',
+      service: 'OpenWeatherMap',
+      required: true,
+    },
+    location: {
+      type: 'text',
+      label: 'Location',
+      defaultValue: 'London, UK',
+    },
+  },
+};
+
+export const WeatherWidget: React.FC<WidgetProps> = ({ widget }) => {
+  const { getKeyValue } = useAuthKeys();
+  const apiKey = widget.config.apiKey ? getKeyValue(widget.config.apiKey) : null;
+
+  useEffect(() => {
+    if (apiKey) {
+      fetchWeatherData(widget.config.location, apiKey);
+    }
+  }, [apiKey, widget.config.location]);
+
+  // ... rest of the component
+};
+```
+
+## Best Practices
+
+1. **API Key Usage**:
+   - Always use the auth key system for API keys
+   - Never hardcode API keys in your widget
+   - Use descriptive service names for key management
+   - Handle cases where keys are not available
+
+2. **Configuration**:
+   - Provide clear labels and descriptions
+   - Use appropriate field types
+   - Set sensible default values
+   - Validate configuration values
+
+3. **Error Handling**:
+   - Display user-friendly error messages
+   - Handle API errors gracefully
+   - Provide feedback when keys are invalid
+
+4. **Performance**:
+   - Cache API responses when appropriate
+   - Implement reasonable refresh intervals
+   - Clean up resources in useEffect
+
+5. **Security**:
+   - Never expose API keys in the UI
+   - Use secure endpoints (HTTPS)
+   - Validate and sanitize user input 

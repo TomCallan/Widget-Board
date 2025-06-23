@@ -2,13 +2,15 @@ import { LucideIcon } from 'lucide-react';
 
 // Interface for widget configuration field definitions
 export interface WidgetConfigField {
-  type: 'text' | 'number' | 'boolean' | 'select' | 'color';
+  type: 'text' | 'number' | 'boolean' | 'select' | 'authKey';
   label: string;
   description?: string;
-  default?: any;
+  defaultValue?: any;
+  required?: boolean;
   options?: { label: string; value: any }[]; // For select type
   min?: number; // For number type
   max?: number; // For number type
+  service?: string; // For authKey type, specify which service's keys to show
 }
 
 export interface Widget {

@@ -8,6 +8,8 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { Plus, Settings, Palette, X } from 'lucide-react';
 import { ColorScheme, COLOR_SCHEMES } from './types/widget';
 import { WidgetConfigDialog } from './components/WidgetConfigDialog';
+import { SettingsDialog } from './components/SettingsDialog';
+import { useSettings } from './contexts/SettingsContext';
 
 const DEFAULT_DASHBOARD: Dashboard = {
   id: '1',
@@ -56,12 +58,14 @@ const DEFAULT_DASHBOARD: Dashboard = {
 };
 
 function App() {
+  const { settings } = useSettings();
   const [isLoading, setIsLoading] = useState(true);
   const [widgetRegistry, setWidgetRegistry] = useState<typeof WIDGET_REGISTRY>({});
   const [dashboards, setDashboards] = useLocalStorage<Dashboard[]>('dashboards', [DEFAULT_DASHBOARD]);
   const [currentDashboardId, setCurrentDashboardId] = useLocalStorage<string>('current-dashboard-id', DEFAULT_DASHBOARD.id);
   const [showWidgetSelector, setShowWidgetSelector] = useState(false);
   const [showColorSchemeSelector, setShowColorSchemeSelector] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [configWidget, setConfigWidget] = useState<Widget | null>(null);
 
   useEffect(() => {
@@ -74,6 +78,36 @@ function App() {
       setIsLoading(false);
     });
   }, []);
+
+  // Apply settings to the app
+  useEffect(() => {
+    // Apply reduce motion
+    document.documentElement.style.setProperty(
+      '--transition-duration',
+      settings.performance.reduceMotion ? '0s' : '0.2s'
+    );
+
+    // Apply hardware acceleration
+    document.body.style.transform = settings.performance.hardwareAcceleration
+      ? 'translateZ(0)'
+      : 'none';
+  }, [settings.performance]);
+
+  // Apply widget spacing to the dashboard
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      '--widget-spacing',
+      `${settings.appearance.widgetSpacing}px`
+    );
+  }, [settings.appearance.widgetSpacing]);
+
+  // Apply animations setting
+  useEffect(() => {
+    document.documentElement.classList.toggle(
+      'disable-animations',
+      !settings.general.enableAnimations
+    );
+  }, [settings.general.enableAnimations]);
 
   // Early return while loading
   if (isLoading) {
@@ -252,7 +286,12 @@ function App() {
   };
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${scheme.from} ${scheme.via} ${scheme.to} relative overflow-hidden`}>
+    <div 
+      className={`app min-h-screen bg-gradient-to-br ${scheme.from} ${scheme.via} ${scheme.to}`}
+      style={{
+        '--grid-opacity': settings.general.showWidgetGrid ? '0.05' : '0',
+      } as React.CSSProperties}
+    >
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width=%2220%22%20height=%2220%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg%20fill=%22%239C92AC%22%20fill-opacity=%220.05%22%3E%3Ccircle%20cx=%223%22%20cy=%223%22%20r=%221%22/%3E%3C/g%3E%3C/svg%3E')] opacity-40"></div>
       
@@ -290,7 +329,10 @@ function App() {
           >
             <Palette size={20} />
           </button>
-          <button className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
+          <button 
+            onClick={() => setShowSettings(true)}
+            className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+          >
             <Settings size={20} />
           </button>
         </div>
@@ -394,6 +436,12 @@ function App() {
           onSave={handleSaveConfig}
         />
       )}
+
+      {/* Settings Dialog */}
+      <SettingsDialog
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
     </div>
   );
 }
