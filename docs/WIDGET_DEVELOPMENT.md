@@ -18,6 +18,10 @@ This guide provides comprehensive documentation for creating widgets for the Das
 - [Example Widget](#example-widget)
 - [Publishing to Marketplace](#publishing-to-marketplace)
 - [API Key Management](#api-key-management)
+- [State Management Best Practices](#state-management-best-practices)
+- [Error Handling](#error-handling)
+- [Testing](#testing)
+- [Performance Optimization](#performance-optimization)
 
 ## Getting Started
 
@@ -563,31 +567,176 @@ export const WeatherWidget: React.FC<WidgetProps> = ({ widget }) => {
 };
 ```
 
-## Best Practices
+## State Management Best Practices
 
-1. **API Key Usage**:
-   - Always use the auth key system for API keys
-   - Never hardcode API keys in your widget
-   - Use descriptive service names for key management
-   - Handle cases where keys are not available
+### Configuration Initialization
+When initializing widget configuration, always follow these guidelines:
 
-2. **Configuration**:
-   - Provide clear labels and descriptions
-   - Use appropriate field types
-   - Set sensible default values
-   - Validate configuration values
+1. Define default values for ALL configuration fields
+2. Use proper type checking and safe access patterns
+3. Handle nested configuration structures carefully
 
-3. **Error Handling**:
-   - Display user-friendly error messages
-   - Handle API errors gracefully
-   - Provide feedback when keys are invalid
+Example:
+```typescript
+interface WidgetConfig {
+  setting1: string;
+  setting2: number;
+}
 
-4. **Performance**:
-   - Cache API responses when appropriate
-   - Implement reasonable refresh intervals
-   - Clean up resources in useEffect
+const defaultConfig: WidgetConfig = {
+  setting1: 'default',
+  setting2: 0
+};
 
-5. **Security**:
-   - Never expose API keys in the UI
-   - Use secure endpoints (HTTPS)
-   - Validate and sanitize user input 
+// In your widget component:
+const MyWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
+  // Safely initialize config with defaults
+  const config = {
+    ...defaultConfig,
+    ...widget.config
+  };
+
+  // Use a stable dependency for useEffect
+  useEffect(() => {
+    // Your effect code
+  }, [JSON.stringify(config)]); // Prevents infinite loops
+};
+```
+
+### Common Pitfalls to Avoid
+
+1. **Infinite Update Loops**
+   - Always use proper dependency arrays in useEffect
+   - Use JSON.stringify for object dependencies
+   - Consider using useMemo for complex objects
+   - Avoid updating state directly in useEffect without conditions
+
+2. **Undefined Properties**
+   - Always provide default values
+   - Use optional chaining (?.) for nested properties
+   - Add type checking for all properties
+   - Use proper TypeScript interfaces
+
+3. **State Updates**
+   - Keep state updates atomic
+   - Use functional updates for state that depends on previous values
+   - Avoid updating state in rapid succession
+   - Consider using useReducer for complex state
+
+## Error Handling
+
+The Dash platform includes built-in error boundaries for widgets. However, you should still implement proper error handling in your widget:
+
+1. **Data Validation**
+```typescript
+// Validate incoming data
+const validateConfig = (config: unknown): config is WidgetConfig => {
+  if (!config || typeof config !== 'object') return false;
+  // Add your validation logic
+  return true;
+};
+
+// Use in your widget
+if (!validateConfig(widget.config)) {
+  throw new Error('Invalid widget configuration');
+}
+```
+
+2. **Async Operations**
+```typescript
+const fetchData = async () => {
+  try {
+    const data = await api.getData();
+    setData(data);
+  } catch (error) {
+    console.error('Widget data fetch error:', error);
+    setError('Failed to load data');
+  }
+};
+```
+
+3. **Fallback UI**
+```typescript
+const MyWidget: React.FC<WidgetProps> = ({ widget }) => {
+  const [error, setError] = useState<string | null>(null);
+
+  if (error) {
+    return (
+      <div className="widget-error">
+        <p>{error}</p>
+        <button onClick={() => setError(null)}>Retry</button>
+      </div>
+    );
+  }
+
+  // Normal widget render
+};
+```
+
+## Testing
+
+Always test your widget with various scenarios:
+
+1. Invalid/missing configuration
+2. Network failures
+3. Empty data states
+4. Edge cases in data processing
+5. Rapid state updates
+
+## Performance Optimization
+
+1. **Memoization**
+```typescript
+const memoizedValue = useMemo(() => computeExpensiveValue(config), 
+  [JSON.stringify(config)]
+);
+
+const memoizedCallback = useCallback(() => {
+  // Handle event
+}, [/* dependencies */]);
+```
+
+2. **Render Optimization**
+- Use React.memo for pure components
+- Avoid unnecessary re-renders
+- Keep state as local as possible
+- Use proper key props in lists
+
+## Widget Lifecycle
+
+Your widget should properly handle:
+
+1. **Initialization**
+   - Default state
+   - Configuration validation
+   - Resource setup
+
+2. **Updates**
+   - Configuration changes
+   - Props changes
+   - State updates
+
+3. **Cleanup**
+   - Resource cleanup
+   - Event listener removal
+   - Timer cleanup
+
+Example:
+```typescript
+const MyWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
+  useEffect(() => {
+    // Setup
+    const interval = setInterval(() => {
+      // Update logic
+    }, 1000);
+
+    // Cleanup
+    return () => {
+      clearInterval(interval);
+      // Additional cleanup
+    };
+  }, [/* dependencies */]);
+};
+```
+
+Remember: The widget container provides error boundaries, but your widget should still handle errors gracefully when possible. 

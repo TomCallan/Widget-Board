@@ -116,6 +116,21 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
           {activeTab === 'appearance' && (
             <div className="space-y-4">
               <div>
+                <label className="flex items-center justify-between">
+                  <span className="text-white">Show Dashboard Tabs</span>
+                  <input
+                    type="checkbox"
+                    checked={settings.appearance.showTabBar}
+                    onChange={(e) => updateAppearanceSettings({ showTabBar: e.target.checked })}
+                    className="form-checkbox h-4 w-4 text-purple-500 rounded border-white/20 bg-white/5 focus:ring-purple-500"
+                  />
+                </label>
+                <p className="text-sm text-white/50 mt-1">
+                  Show or hide the dashboard tabs bar
+                </p>
+              </div>
+
+              <div>
                 <label className="block text-white mb-2">Default Widget Size</label>
                 <select
                   value={settings.appearance.defaultWidgetSize}

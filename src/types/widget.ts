@@ -50,9 +50,14 @@ export interface WidgetConfig {
     resizable?: boolean;
     fullscreenable?: boolean;
     hasSettings?: boolean;
-    configurable?: boolean; // New feature flag for configuration
+    configurable?: boolean;
+    notifications?: {
+      sound?: boolean | string; // Can be true for default behavior or a URL string
+      desktop?: boolean;
+      toast?: boolean;
+    };
   };
-  configFields?: Record<string, WidgetConfigField>; // Configuration field definitions
+  configFields?: Record<string, WidgetConfigField>;
   version: string;
   categories?: string[];
   author?: {

@@ -313,29 +313,10 @@ function App() {
           onDashboardAdd={handleDashboardAdd}
           onDashboardRename={handleDashboardRename}
           onDashboardDelete={handleDashboardDelete}
+          onAddWidget={() => setShowWidgetSelector(true)}
+          onStyleClick={() => setShowColorSchemeSelector(true)}
+          onSettingsClick={() => setShowSettings(true)}
         />
-
-        <div className="flex items-center justify-end gap-3 px-6 py-3">
-          <button
-            onClick={() => setShowWidgetSelector(true)}
-            className={`flex items-center gap-2 px-4 py-2 bg-${scheme.accentColor}-600 hover:bg-${scheme.accentColor}-700 text-white rounded-lg transition-colors duration-200`}
-          >
-            <Plus size={18} />
-            Add Widget
-          </button>
-          <button 
-            onClick={() => setShowColorSchemeSelector(true)}
-            className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <Palette size={20} />
-          </button>
-          <button 
-            onClick={() => setShowSettings(true)}
-            className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <Settings size={20} />
-          </button>
-        </div>
       </header>
 
       {/* Dashboard */}
@@ -375,8 +356,9 @@ function App() {
               <p className="text-white/50 mb-4">No widgets added yet</p>
               <button
                 onClick={() => setShowWidgetSelector(true)}
-                className={`px-4 py-2 bg-${scheme.accentColor}-600 hover:bg-${scheme.accentColor}-700 text-white rounded-lg transition-colors`}
+                className="flex items-center gap-2 px-4 py-2 hover:bg-white/10 text-white rounded-lg transition-colors duration-200"
               >
+                <Plus size={18} className="mr-1" />
                 Add Your First Widget
               </button>
             </div>
@@ -431,9 +413,9 @@ function App() {
       {configWidget && (
         <WidgetConfigDialog
           widget={configWidget}
-          widgetConfig={WIDGET_REGISTRY[configWidget.type]}
+          config={WIDGET_REGISTRY[configWidget.type]}
           onClose={() => setConfigWidget(null)}
-          onSave={handleSaveConfig}
+          onUpdate={handleUpdateWidget}
         />
       )}
 

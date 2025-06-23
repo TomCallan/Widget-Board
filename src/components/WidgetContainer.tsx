@@ -1,6 +1,46 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Widget, WidgetConfig } from '../types/widget';
-import { Move, X, Maximize2, Minimize2, ArrowUpDown, Settings } from 'lucide-react';
+import { Move, X, Maximize2, Minimize2, ArrowUpDown, Settings, AlertTriangle } from 'lucide-react';
+
+class WidgetErrorBoundary extends React.Component<
+  { children: React.ReactNode; widgetId: string; onRemove: (id: string) => void },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode; widgetId: string; onRemove: (id: string) => void }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error(`Widget Error (${this.props.widgetId}):`, error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="h-full flex flex-col items-center justify-center p-4 space-y-4 text-center">
+          <AlertTriangle className="w-12 h-12 text-red-500" />
+          <div>
+            <h3 className="text-lg font-semibold text-white mb-2">Widget Error</h3>
+            <p className="text-sm text-white/70 mb-4">This widget encountered an error and could not be rendered.</p>
+            <button
+              onClick={() => this.props.onRemove(this.props.widgetId)}
+              className="px-3 py-2 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded text-sm"
+            >
+              Remove Widget
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 interface WidgetContainerProps {
   widget: Widget;
@@ -155,70 +195,76 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
-      {/* Widget Header with controls */}
-      <div 
-        className="widget-header absolute top-0 left-0 right-0 h-8 flex items-center justify-between px-3 cursor-move"
-        onMouseDown={handleMouseDown}
-      >
-        <span className="text-xs text-white/70 font-medium truncate">{widget.title}</span>
-        <div className={`flex items-center gap-1 transition-opacity duration-200 ${
-          showControls ? 'opacity-100' : 'opacity-0'
-        }`}>
-          {widgetConfig.features?.configurable && widgetConfig.configFields && (
-            <button
-              onClick={() => onConfigureWidget?.(widget.id)}
-              className="p-1 text-white/70 hover:text-purple-400 hover:bg-white/10 rounded transition-colors"
-            >
-              <Settings size={12} />
-            </button>
-          )}
-          {widgetConfig.features?.resizable && !widget.isFullscreen && (
-            <div
-              className="p-1 rounded hover:bg-white/10 transition-colors cursor-se-resize"
-              onMouseDown={handleResizeStart}
-            >
-              <ArrowUpDown size={12} className="text-white/70" />
+      <WidgetErrorBoundary widgetId={widget.id} onRemove={onRemove}>
+        {/* Widget Header with controls */}
+        <div 
+          className="widget-header absolute top-0 left-0 right-0 h-8 flex items-center justify-between px-3 cursor-move"
+          onMouseDown={handleMouseDown}
+        >
+          <span className="text-xs text-white/70 font-medium truncate">{widget.title}</span>
+          <div className={`flex items-center gap-1 transition-opacity duration-200 ${
+            showControls ? 'opacity-100' : 'opacity-0'
+          }`}>
+            {widgetConfig.features?.configurable && widgetConfig.configFields && (
+              <button
+                onClick={() => onConfigureWidget?.(widget.id)}
+                className="p-1 text-white/70 hover:text-purple-400 hover:bg-white/10 rounded transition-colors"
+              >
+                <Settings size={12} />
+              </button>
+            )}
+            {widgetConfig.features?.resizable && !widget.isFullscreen && (
+              <div
+                className="p-1 rounded hover:bg-white/10 transition-colors cursor-se-resize"
+                onMouseDown={handleResizeStart}
+              >
+                <ArrowUpDown size={12} className="text-white/70" />
+              </div>
+            )}
+            {widgetConfig.features?.fullscreenable && (
+              <button
+                onClick={() => onToggleFullscreen(widget.id)}
+                className="p-1 text-white/70 hover:text-blue-400 hover:bg-white/10 rounded transition-colors"
+              >
+                {widget.isFullscreen ? (
+                  <Minimize2 size={12} />
+                ) : (
+                  <Maximize2 size={12} />
+                )}
+              </button>
+            )}
+            <div className="drag-handle p-1 rounded hover:bg-white/10 transition-colors">
+              <Move size={12} className="text-white/70" />
             </div>
-          )}
-          {widgetConfig.features?.fullscreenable && (
             <button
-              onClick={() => onToggleFullscreen(widget.id)}
-              className="p-1 text-white/70 hover:text-blue-400 hover:bg-white/10 rounded transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove(widget.id);
+              }}
+              className="p-1 text-white/70 hover:text-red-400 hover:bg-white/10 rounded transition-colors"
             >
-              {widget.isFullscreen ? (
-                <Minimize2 size={12} />
-              ) : (
-                <Maximize2 size={12} />
-              )}
+              <X size={12} />
             </button>
-          )}
-          <div className="drag-handle p-1 rounded hover:bg-white/10 transition-colors">
-            <Move size={12} className="text-white/70" />
           </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove(widget.id);
-            }}
-            className="p-1 text-white/70 hover:text-red-400 hover:bg-white/10 rounded transition-colors"
-          >
-            <X size={12} />
-          </button>
         </div>
-      </div>
 
-      {/* Widget Content */}
-      <div className="h-full pt-8 p-4">
-        {children}
-      </div>
+        {/* Widget Content Container with overflow handling */}
+        <div className="absolute inset-x-0 top-8 bottom-0 overflow-auto">
+          <div className="p-3">
+            {children}
+          </div>
+        </div>
 
-      {/* Resize handle */}
-      {widgetConfig.features?.resizable && !widget.isFullscreen && (
-        <div
-          className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
-          onMouseDown={handleResizeStart}
-        />
-      )}
+        {/* Resize handle */}
+        {widgetConfig.features?.resizable && !widget.isFullscreen && (
+          <div
+            className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+            onMouseDown={handleResizeStart}
+          />
+        )}
+      </WidgetErrorBoundary>
     </div>
   );
 };
+
+export default WidgetContainer;

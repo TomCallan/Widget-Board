@@ -6,15 +6,19 @@ export interface AuthKey {
   createdAt: number;
 }
 
+export interface AppearanceSettings {
+  theme: string;
+  defaultWidgetSize: 'compact' | 'normal' | 'large';
+  showTabBar: boolean;
+  widgetSpacing: number;
+}
+
 export interface AppSettings {
   general: {
     enableAnimations: boolean;
     showWidgetGrid: boolean;
   };
-  appearance: {
-    defaultWidgetSize: 'compact' | 'normal' | 'large';
-    widgetSpacing: number;
-  };
+  appearance: AppearanceSettings;
   performance: {
     reduceMotion: boolean;
     hardwareAcceleration: boolean;
@@ -30,7 +34,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
     showWidgetGrid: true,
   },
   appearance: {
+    theme: 'default',
     defaultWidgetSize: 'normal',
+    showTabBar: true,
     widgetSpacing: 16,
   },
   performance: {
