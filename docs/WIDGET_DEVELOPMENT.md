@@ -1,13 +1,21 @@
 # Widget Development Guide
 
-This guide will help you create custom widgets for the Dash platform. Whether you're building widgets for personal use or planning to publish them to the widget marketplace, this document covers everything you need to know.
+This guide provides comprehensive documentation for creating widgets for the Dash platform. Whether you're building widgets for personal use or planning to publish them to the widget marketplace, this document covers everything you need to know.
 
 ## Table of Contents
 - [Getting Started](#getting-started)
+- [Widget Architecture](#widget-architecture)
 - [Widget Structure](#widget-structure)
 - [Widget Features](#widget-features)
+  - [Configuration System](#configuration-system)
+  - [Resizing](#resizing)
+  - [Fullscreen Mode](#fullscreen-mode)
+  - [State Management](#state-management)
+  - [Interactive Features](#interactive-features)
+  - [Data Visualization](#data-visualization)
 - [Widget Lifecycle](#widget-lifecycle)
 - [Best Practices](#best-practices)
+- [Example Widget](#example-widget)
 - [Publishing to Marketplace](#publishing-to-marketplace)
 
 ## Getting Started
@@ -18,21 +26,27 @@ To create a new widget:
 2. Import the necessary types and components
 3. Create your widget component
 4. Export your widget configuration
-5. Register your widget with the platform
 
-Here's a complete example:
+The platform will automatically discover and load your widget - there's no need to register it manually. All core functionality like fullscreen, resizing, removal, and configuration is handled by the platform's widget container.
+
+Here's a basic example:
 
 ```typescript
 import React from 'react';
 import { WidgetConfig, WidgetProps } from '../../types/widget';
 import { YourIcon } from 'lucide-react';
 
+interface WidgetState {
+  // Define your widget's state interface
+  count: number;
+}
+
 const MyWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
   // Access widget state
-  const config = widget.config;
+  const config = widget.config as WidgetState;
   
   // Update widget state
-  const updateConfig = (updates: any) => {
+  const updateConfig = (updates: Partial<WidgetState>) => {
     onUpdate(widget.id, {
       config: { ...config, ...updates }
     });
@@ -40,9 +54,6 @@ const MyWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
 
   return (
     <div className="h-full flex flex-col">
-      <h3 className={`font-semibold ${widget.isFullscreen ? 'text-xl' : 'text-sm'}`}>
-        My Custom Widget
-      </h3>
       {/* Your widget content here */}
     </div>
   );
@@ -61,7 +72,10 @@ export const myWidgetConfig: WidgetConfig = {
   features: {
     resizable: true,
     fullscreenable: true,
-    hasSettings: false
+    configurable: true
+  },
+  configFields: {
+    // Define configuration fields here
   },
   categories: ['PRODUCTIVITY'], // Use available categories
   author: {
@@ -72,149 +86,383 @@ export const myWidgetConfig: WidgetConfig = {
 };
 ```
 
-## Widget Structure
+## Widget Architecture
 
-### Required Properties
+The Dash platform uses a dynamic widget loading system with the following key features:
 
-Every widget must implement the `WidgetConfig` interface with these required properties:
+1. **Automatic Discovery**
+   - Widgets are automatically discovered from the `src/widgets/base` and `src/widgets/custom` directories
+   - Each widget file should export both a component and its configuration
+   - No manual registration or imports required
 
-- `type`: Unique identifier for your widget type (must start with 'custom-', e.g., 'custom-calculator')
-- `name`: Display name shown in the widget header and selector
-- `description`: Brief description of the widget's functionality
-- `defaultSize`: Initial dimensions when first added
-- `minSize`: Minimum allowed dimensions when resizing
-- `maxSize`: Maximum allowed dimensions when resizing
-- `component`: The React component that renders your widget
-- `icon`: An icon from lucide-react library
-- `version`: Semantic version number (e.g., '1.0.0')
+2. **Built-in Functionality**
+   - The platform provides a `WidgetContainer` component that handles:
+     - Widget positioning and dragging
+     - Resizing controls
+     - Fullscreen toggle
+     - Configuration dialog
+     - Remove button
+     - Error boundaries
+   - Widget developers only need to focus on their widget's core functionality
 
-### Optional Properties
-
-- `features`: Object defining supported features
-  ```typescript
-  features: {
-    resizable?: boolean;      // Enable/disable resizing
-    fullscreenable?: boolean; // Enable/disable fullscreen mode
-    hasSettings?: boolean;    // Enable/disable settings panel
-  }
-  ```
-- `categories`: Array of categories the widget belongs to
-- `author`: Information about the widget creator
-- `license`: License type
-- `repository`: Link to source code
-- `dependencies`: Required external dependencies
+3. **Props and Updates**
+   - Widgets receive standardized props through the `WidgetProps` interface
+   - All widget state updates should use the provided `onUpdate` function
+   - The platform handles persistence and state management
 
 ## Widget Features
 
-### Responsive Design
+### Configuration System
 
-Your widget should handle both compact and fullscreen modes gracefully:
+The configuration system allows widgets to have user-configurable settings. To implement configuration:
+
+1. Set `configurable: true` in the widget's features
+2. Define configuration fields in `configFields`
+3. Use the configuration values from `widget.config`
+
+Available field types:
 
 ```typescript
-const MyWidget: React.FC<WidgetProps> = ({ widget }) => {
+interface WidgetConfigField {
+  type: 'text' | 'number' | 'boolean' | 'select' | 'color';
+  label: string;
+  description?: string;
+  default?: any;
+  options?: { label: string; value: any }[]; // For select type
+  min?: number; // For number type
+  max?: number; // For number type
+}
+```
+
+Example configuration:
+
+```typescript
+configFields: {
+  theme: {
+    type: 'select',
+    label: 'Theme',
+    description: 'Choose the widget theme',
+    default: 'light',
+    options: [
+      { label: 'Light', value: 'light' },
+      { label: 'Dark', value: 'dark' },
+      { label: 'System', value: 'system' }
+    ]
+  },
+  refreshInterval: {
+    type: 'number',
+    label: 'Refresh Interval',
+    description: 'Update frequency in seconds',
+    default: 60,
+    min: 30,
+    max: 3600
+  },
+  accentColor: {
+    type: 'color',
+    label: 'Accent Color',
+    description: 'Widget highlight color',
+    default: '#6366f1'
+  }
+}
+```
+
+### Interactive Features
+
+When building interactive widgets, consider implementing these features:
+
+1. **Collapsible Sections**
+```typescript
+const Section: React.FC<{
+  title: string;
+  id: string;
+  children: React.ReactNode;
+}> = ({ title, id, children }) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+  
   return (
-    <div className="h-full">
-      {/* Conditional rendering based on mode */}
-      {widget.isFullscreen ? (
-        <FullscreenView />
-      ) : (
-        <CompactView />
+    <div className="border border-white/10 rounded-lg overflow-hidden">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between p-3"
+      >
+        <span>{title}</span>
+        {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+      </button>
+      {isExpanded && (
+        <div className="p-3 border-t border-white/10">
+          {children}
+        </div>
       )}
     </div>
   );
 };
 ```
 
-### State Management
-
-Widgets receive these props:
+2. **Status Indicators**
 ```typescript
-interface WidgetProps {
-  widget: Widget;          // Current widget instance
-  onUpdate: (id: string, updates: Partial<Widget>) => void;
-  onRemove: (id: string) => void;
-  onResize?: (id: string, size: { width: number; height: number }) => void;
-  onToggleFullscreen?: (id: string) => void;
-}
-```
+const StatusIndicator: React.FC<{ status: string }> = ({ status }) => {
+  const colors = {
+    success: 'bg-green-500',
+    error: 'bg-red-500',
+    warning: 'bg-yellow-500',
+    info: 'bg-blue-500'
+  };
 
-Store widget state in the `config` object:
-```typescript
-const updateConfig = (updates: any) => {
-  onUpdate(widget.id, {
-    config: { ...widget.config, ...updates }
-  });
+  return (
+    <div className={`w-2 h-2 rounded-full ${colors[status]}`} />
+  );
 };
 ```
 
-### Styling Guidelines
+3. **Loading States**
+```typescript
+const LoadingOverlay: React.FC = () => (
+  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+    <RefreshCw className="animate-spin" />
+  </div>
+);
+```
 
-1. Use Tailwind CSS classes for consistent styling
-2. Follow the platform's design system
-3. Support dark mode by default
-4. Use relative units for better scaling
-5. Implement proper spacing and padding
+### Data Visualization
+
+When creating widgets with charts or data visualizations:
+
+1. **Interactive Chart Example**
+```typescript
+const Chart: React.FC<{ data: ChartData }> = ({ data }) => {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const maxValue = Math.max(...data.values);
+  
+  return (
+    <div className="space-y-4">
+      <div className="h-40 flex items-end gap-2">
+        {data.values.map((value, i) => (
+          <div 
+            key={i} 
+            className="flex-1 flex flex-col items-center"
+            onMouseEnter={() => setHoveredIndex(i)}
+            onMouseLeave={() => setHoveredIndex(null)}
+          >
+            <div className="relative flex-1 w-full flex items-end">
+              <div 
+                className={`w-full bg-purple-500/50 hover:bg-purple-500/70 
+                           transition-colors cursor-pointer ${
+                  hoveredIndex === i ? 'bg-purple-500/70' : ''
+                }`}
+                style={{ height: `${(value / maxValue) * 100}%` }}
+              />
+              {hoveredIndex === i && (
+                <div className="absolute bottom-full left-1/2 transform 
+                              -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 
+                              rounded text-xs whitespace-nowrap">
+                  {value} on {data.labels[i]}
+                </div>
+              )}
+            </div>
+            <span className="text-xs mt-1 text-white/70">
+              {data.labels[i]}
+            </span>
+          </div>
+        ))}
+      </div>
+      
+      {/* Summary Section */}
+      <div className="grid grid-cols-2 gap-2 text-sm">
+        <div className="bg-white/5 p-2 rounded">
+          <div className="text-white/70">Highest</div>
+          <div className="font-medium">{Math.max(...data.values)}</div>
+        </div>
+        <div className="bg-white/5 p-2 rounded">
+          <div className="text-white/70">Average</div>
+          <div className="font-medium">
+            {Math.round(data.values.reduce((a, b) => a + b, 0) / data.values.length)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
+2. **Visualization Best Practices**
+   - Provide clear hover states and tooltips
+   - Include summaries and legends
+   - Use appropriate animations and transitions
+   - Handle different screen sizes and orientations
+   - Consider accessibility with ARIA labels
+   - Optimize performance with useMemo/useCallback
+
+### Responsive Design
+
+Widgets should adapt to both normal and fullscreen modes:
+
+```typescript
+return (
+  <div className="h-full flex flex-col">
+    {widget.isFullscreen ? (
+      // Fullscreen layout
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-4">
+          <Section title="Main Content">
+            {/* Primary content */}
+          </Section>
+          <Section title="Additional Info">
+            {/* Secondary content */}
+          </Section>
+        </div>
+        <div className="space-y-4">
+          <Section title="Details">
+            {/* Detailed information */}
+          </Section>
+          <Section title="Analytics">
+            {/* Charts and data */}
+          </Section>
+        </div>
+      </div>
+    ) : (
+      // Compact layout
+      <div className="space-y-3">
+        <Section title="Quick Stats">
+          {/* Summary view */}
+        </Section>
+        <Section title="Recent Items">
+          {/* Limited list */}
+        </Section>
+      </div>
+    )}
+  </div>
+);
+```
+
+## Widget Lifecycle
+
+1. **Initialization**
+   - Widget is created with default configuration
+   - Initial state is loaded from storage if available
+
+2. **Mount**
+   - Component mounts
+   - Set up event listeners
+   - Initialize external resources
+
+3. **Updates**
+   - Handle prop changes
+   - Update internal state
+   - Persist changes via onUpdate
+
+4. **Unmount**
+   - Clean up event listeners
+   - Release external resources
 
 Example:
 ```typescript
-<div className="p-4 space-y-4 text-white/70">
-  <h3 className="font-semibold text-white">Title</h3>
-  <div className="bg-white/10 rounded-lg p-3">
-    Content
-  </div>
-</div>
+const MyWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
+  useEffect(() => {
+    // Setup
+    const cleanup = setupResources();
+    
+    return () => {
+      // Cleanup
+      cleanup();
+    };
+  }, []);
+
+  // Handle updates
+  useEffect(() => {
+    handleConfigChanges(widget.config);
+  }, [widget.config]);
+};
 ```
 
 ## Best Practices
 
-1. **Performance**
-   - Use React.memo for expensive components
-   - Implement proper cleanup in useEffect
-   - Optimize re-renders
-   - Lazy load heavy dependencies
+1. **State Management**
+   - Use appropriate React hooks (useState, useEffect, useMemo)
+   - Clean up resources and subscriptions
+   - Handle loading and error states
+   - Implement proper data refresh logic
 
-2. **Error Handling**
+2. **Performance**
+   - Optimize re-renders with proper hooks
+   - Use debouncing for frequent updates
+   - Implement proper cleanup
+   - Consider lazy loading for heavy components
+
+3. **Error Handling**
    - Implement error boundaries
-   - Provide meaningful error messages
-   - Handle API failures gracefully
-   - Validate user input
+   - Show meaningful error messages
+   - Provide fallback content
+   - Handle edge cases gracefully
 
-3. **Accessibility**
-   - Use semantic HTML
-   - Provide ARIA attributes
+4. **Styling**
+   - Use Tailwind CSS for consistent styling
+   - Follow the platform's design system
+   - Support both light and dark themes
+   - Use relative units for better scaling
+
+5. **Accessibility**
+   - Include proper ARIA attributes
    - Support keyboard navigation
    - Maintain sufficient color contrast
+   - Provide text alternatives for visual elements
 
-4. **Testing**
-   - Test all features and interactions
-   - Verify resource cleanup
-   - Test different screen sizes
-   - Validate error handling
-   - Check performance impact
+## Example Widget
+
+For a complete example that demonstrates all these features and best practices, refer to the Developer Example widget in `src/widgets/custom/DeveloperExampleWidget.tsx`. This widget showcases:
+
+- Interactive features
+- Data visualization
+- Responsive layouts
+- Configuration options
+- State management
+- Error handling
+- Loading states
+- Best practices implementation
 
 ## Publishing to Marketplace
 
-Before publishing:
+Before publishing your widget:
 
 1. **Documentation**
-   - Clear description
-   - Usage instructions
-   - Configuration options
-   - Example scenarios
+   - Clear description and usage instructions
+   - Configuration options explained
+   - Examples and screenshots
+   - Dependencies listed
 
 2. **Quality Checks**
-   - Code linting
-   - Type checking
-   - Performance testing
-   - Cross-browser testing
+   - Test all features and interactions
+   - Verify error handling
+   - Check performance impact
+   - Validate accessibility
 
-3. **Metadata**
-   - Accurate categories
-   - Relevant tags
-   - Complete author information
-   - Clear version number
+3. **Package**
+   - Update version number
+   - Include all dependencies
+   - Add license information
+   - Include README
 
-4. **Assets**
-   - High-quality screenshots
-   - Demo video (if applicable)
-   - Example configurations 
+4. **Submit**
+   - Create pull request
+   - Provide demo
+   - Include test cases
+   - Wait for review
+
+## Available Categories
+
+Widgets can belong to one or more of these categories:
+- `TIME`: Time & Date related widgets
+- `PRODUCTIVITY`: Task and organization widgets
+- `SYSTEM`: System monitoring and control widgets
+- `TOOLS`: Utility and calculation widgets
+- `INFORMATION`: Data display and news widgets
+
+## Example Widgets
+
+For reference implementations, check out these base widgets:
+- `ClockWidget`: Time display with configuration
+- `TodoWidget`: Task management with persistence
+- `WeatherWidget`: API integration example
+- `CalculatorWidget`: Complex state management
+- `SystemStatsWidget`: System integration
+
+Each example demonstrates different aspects of widget development and can be used as a starting point for your own widgets. 

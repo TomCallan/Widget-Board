@@ -1,5 +1,16 @@
 import { LucideIcon } from 'lucide-react';
 
+// Interface for widget configuration field definitions
+export interface WidgetConfigField {
+  type: 'text' | 'number' | 'boolean' | 'select' | 'color';
+  label: string;
+  description?: string;
+  default?: any;
+  options?: { label: string; value: any }[]; // For select type
+  min?: number; // For number type
+  max?: number; // For number type
+}
+
 export interface Widget {
   id: string;
   type: string;
@@ -37,7 +48,9 @@ export interface WidgetConfig {
     resizable?: boolean;
     fullscreenable?: boolean;
     hasSettings?: boolean;
+    configurable?: boolean; // New feature flag for configuration
   };
+  configFields?: Record<string, WidgetConfigField>; // Configuration field definitions
   version: string;
   categories?: string[];
   author?: {

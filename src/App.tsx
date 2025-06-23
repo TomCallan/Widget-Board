@@ -7,6 +7,7 @@ import { WIDGET_REGISTRY, initializeWidgets } from './widgets';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { Plus, Settings, Palette, X } from 'lucide-react';
 import { ColorScheme, COLOR_SCHEMES } from './types/widget';
+import { WidgetConfigDialog } from './components/WidgetConfigDialog';
 
 const DEFAULT_DASHBOARD: Dashboard = {
   id: '1',
@@ -61,6 +62,7 @@ function App() {
   const [currentDashboardId, setCurrentDashboardId] = useLocalStorage<string>('current-dashboard-id', DEFAULT_DASHBOARD.id);
   const [showWidgetSelector, setShowWidgetSelector] = useState(false);
   const [showColorSchemeSelector, setShowColorSchemeSelector] = useState(false);
+  const [configWidget, setConfigWidget] = useState<Widget | null>(null);
 
   useEffect(() => {
     // Initialize widgets when the app starts
@@ -168,12 +170,15 @@ function App() {
   };
 
   const handleAddWidget = (type: string) => {
+    const config = WIDGET_REGISTRY[type];
+    if (!config) return;
+
     const newWidget: Widget = {
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       type,
-      title: widgetRegistry[type].name,
-      position: { x: 40, y: 40 },
-      size: widgetRegistry[type].defaultSize,
+      title: config.name,
+      position: { x: 20, y: 20 },
+      size: config.defaultSize,
       config: {},
       enabled: true
     };
@@ -232,6 +237,18 @@ function App() {
         : dashboard
     ));
     setShowColorSchemeSelector(false);
+  };
+
+  const handleConfigureWidget = (id: string) => {
+    const widget = currentDashboard.widgets.find(w => w.id === id);
+    if (widget) {
+      setConfigWidget(widget);
+    }
+  };
+
+  const handleSaveConfig = (id: string, config: Record<string, any>) => {
+    handleUpdateWidget(id, { config });
+    setConfigWidget(null);
   };
 
   return (
@@ -296,6 +313,7 @@ function App() {
               onSizeChange={handleSizeChange}
               onToggleFullscreen={handleToggleFullscreen}
               onRemove={handleRemoveWidget}
+              onConfigureWidget={handleConfigureWidget}
             >
               <WidgetComponent
                 widget={widget}
@@ -329,7 +347,6 @@ function App() {
         isOpen={showWidgetSelector}
         onClose={() => setShowWidgetSelector(false)}
         onAddWidget={handleAddWidget}
-        registry={widgetRegistry}
       />
 
       {/* Color Scheme Selector Modal */}
@@ -366,6 +383,16 @@ function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Configuration Dialog */}
+      {configWidget && (
+        <WidgetConfigDialog
+          widget={configWidget}
+          widgetConfig={WIDGET_REGISTRY[configWidget.type]}
+          onClose={() => setConfigWidget(null)}
+          onSave={handleSaveConfig}
+        />
       )}
     </div>
   );

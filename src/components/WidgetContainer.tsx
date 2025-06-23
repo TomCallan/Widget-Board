@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Widget, WidgetConfig } from '../types/widget';
-import { Move, X, Maximize2, Minimize2, ArrowUpDown } from 'lucide-react';
+import { Move, X, Maximize2, Minimize2, ArrowUpDown, Settings } from 'lucide-react';
 
 interface WidgetContainerProps {
   widget: Widget;
@@ -10,6 +10,7 @@ interface WidgetContainerProps {
   onSizeChange: (id: string, size: { width: number; height: number }) => void;
   onRemove: (id: string) => void;
   onToggleFullscreen: (id: string) => void;
+  onConfigureWidget?: (id: string) => void;
   gridSize?: number;
 }
 
@@ -21,6 +22,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
   onSizeChange,
   onRemove,
   onToggleFullscreen,
+  onConfigureWidget,
   gridSize = 20
 }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -162,6 +164,14 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
         <div className={`flex items-center gap-1 transition-opacity duration-200 ${
           showControls ? 'opacity-100' : 'opacity-0'
         }`}>
+          {widgetConfig.features?.configurable && widgetConfig.configFields && (
+            <button
+              onClick={() => onConfigureWidget?.(widget.id)}
+              className="p-1 text-white/70 hover:text-purple-400 hover:bg-white/10 rounded transition-colors"
+            >
+              <Settings size={12} />
+            </button>
+          )}
           {widgetConfig.features?.resizable && !widget.isFullscreen && (
             <div
               className="p-1 rounded hover:bg-white/10 transition-colors cursor-se-resize"
