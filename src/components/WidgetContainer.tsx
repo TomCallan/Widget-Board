@@ -1,6 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Widget, WidgetConfig } from '../types/widget';
 import { Move, X, Maximize2, Minimize2, ArrowUpDown, Settings, AlertTriangle } from 'lucide-react';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from './common/ContextMenu';
 
 class WidgetErrorBoundary extends React.Component<
   { children: React.ReactNode; widgetId: string; onRemove: (id: string) => void },
@@ -187,7 +194,7 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
           ? { transform: 'none' }
           : {
               width: widget.size.width,
-              height: widget.size.height,
+              height: widgetConfig.features?.contentDrivenHeight ? 'auto' : widget.size.height,
               transform: `translate(${widget.position.x}px, ${widget.position.y}px)`,
               zIndex: isDragging || isResizing ? 1000 : 10,
             }
@@ -195,74 +202,106 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
-      <WidgetErrorBoundary widgetId={widget.id} onRemove={onRemove}>
-        {/* Widget Header with controls */}
-        <div 
-          className="widget-header absolute top-0 left-0 right-0 h-8 flex items-center justify-between px-3 cursor-move"
-          onMouseDown={handleMouseDown}
-        >
-          <span className="text-xs text-white/70 font-medium truncate">{widget.title}</span>
-          <div className={`flex items-center gap-1 transition-opacity duration-200 ${
-            showControls ? 'opacity-100' : 'opacity-0'
-          }`}>
-            {widgetConfig.features?.configurable && widgetConfig.configFields && (
-              <button
-                onClick={() => onConfigureWidget?.(widget.id)}
-                className="p-1 text-white/70 hover:text-purple-400 hover:bg-white/10 rounded transition-colors"
-              >
-                <Settings size={12} />
-              </button>
-            )}
+      <ContextMenu>
+        <ContextMenuTrigger>
+          <WidgetErrorBoundary widgetId={widget.id} onRemove={onRemove}>
+            {/* Widget Header with controls */}
+            <div 
+              className="widget-header absolute top-0 left-0 right-0 h-8 flex items-center justify-between px-3 cursor-move"
+              onMouseDown={handleMouseDown}
+            >
+              <span className="text-xs text-white/70 font-medium truncate">{widget.title}</span>
+              <div className={`flex items-center gap-1 transition-opacity duration-200 ${
+                showControls ? 'opacity-100' : 'opacity-0'
+              }`}>
+                {widgetConfig.features?.configurable && widgetConfig.configFields && (
+                  <button
+                    onClick={() => onConfigureWidget?.(widget.id)}
+                    className="p-1 text-white/70 hover:text-purple-400 hover:bg-white/10 rounded transition-colors"
+                  >
+                    <Settings size={12} />
+                  </button>
+                )}
+                {widgetConfig.features?.resizable && !widget.isFullscreen && (
+                  <div
+                    className="p-1 rounded hover:bg-white/10 transition-colors cursor-se-resize"
+                    onMouseDown={handleResizeStart}
+                  >
+                    <ArrowUpDown size={12} className="text-white/70" />
+                  </div>
+                )}
+                {widgetConfig.features?.fullscreenable && (
+                  <button
+                    onClick={() => onToggleFullscreen(widget.id)}
+                    className="p-1 text-white/70 hover:text-blue-400 hover:bg-white/10 rounded transition-colors"
+                  >
+                    {widget.isFullscreen ? (
+                      <Minimize2 size={12} />
+                    ) : (
+                      <Maximize2 size={12} />
+                    )}
+                  </button>
+                )}
+                <div className="drag-handle p-1 rounded hover:bg-white/10 transition-colors">
+                  <Move size={12} className="text-white/70" />
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove(widget.id);
+                  }}
+                  className="p-1 text-white/70 hover:text-red-400 hover:bg-white/10 rounded transition-colors"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            </div>
+
+            {/* Widget Content Container with overflow handling */}
+            <div className="absolute inset-x-0 top-8 bottom-0 overflow-auto">
+              {widgetConfig.features?.contentDrivenHeight ? (
+                <div className="p-3 h-full">
+                  {children}
+                </div>
+              ) : (
+                <div className="p-3">
+                  {children}
+                </div>
+              )}
+            </div>
+
+            {/* Resize handle */}
             {widgetConfig.features?.resizable && !widget.isFullscreen && (
               <div
-                className="p-1 rounded hover:bg-white/10 transition-colors cursor-se-resize"
+                className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
                 onMouseDown={handleResizeStart}
-              >
-                <ArrowUpDown size={12} className="text-white/70" />
-              </div>
+              />
             )}
-            {widgetConfig.features?.fullscreenable && (
-              <button
-                onClick={() => onToggleFullscreen(widget.id)}
-                className="p-1 text-white/70 hover:text-blue-400 hover:bg-white/10 rounded transition-colors"
-              >
-                {widget.isFullscreen ? (
-                  <Minimize2 size={12} />
-                ) : (
-                  <Maximize2 size={12} />
-                )}
-              </button>
-            )}
-            <div className="drag-handle p-1 rounded hover:bg-white/10 transition-colors">
-              <Move size={12} className="text-white/70" />
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemove(widget.id);
-              }}
-              className="p-1 text-white/70 hover:text-red-400 hover:bg-white/10 rounded transition-colors"
-            >
-              <X size={12} />
-            </button>
-          </div>
-        </div>
-
-        {/* Widget Content Container with overflow handling */}
-        <div className="absolute inset-x-0 top-8 bottom-0 overflow-auto">
-          <div className="p-3">
-            {children}
-          </div>
-        </div>
-
-        {/* Resize handle */}
-        {widgetConfig.features?.resizable && !widget.isFullscreen && (
-          <div
-            className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
-            onMouseDown={handleResizeStart}
-          />
-        )}
-      </WidgetErrorBoundary>
+          </WidgetErrorBoundary>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          {widgetConfig.features?.configurable && widgetConfig.configFields && (
+            <ContextMenuItem onClick={() => onConfigureWidget?.(widget.id)}>
+              <Settings size={14} className="mr-2" />
+              Configure
+            </ContextMenuItem>
+          )}
+          {widgetConfig.features?.fullscreenable && (
+            <ContextMenuItem onClick={() => onToggleFullscreen(widget.id)}>
+              {widget.isFullscreen ? <Minimize2 size={14} className="mr-2" /> : <Maximize2 size={14} className="mr-2" />}
+              {widget.isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+            </ContextMenuItem>
+          )}
+          <ContextMenuSeparator />
+          <ContextMenuItem
+            onClick={() => onRemove(widget.id)}
+            className="text-red-500 focus:text-red-500"
+          >
+            <X size={14} className="mr-2" />
+            Remove
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
     </div>
   );
 };

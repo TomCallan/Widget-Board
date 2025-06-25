@@ -1,9 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Dashboard } from '../types/widget';
-import { Plus, Edit2, Check, X, Trash2, Settings, Palette, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Edit2, Check, X, Trash2, Settings, Palette, ChevronDown, ChevronUp, Lock, Unlock, XCircle } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { COLOR_SCHEMES } from '../types/widget';
 import { useIdleTimer } from '../hooks/useIdleTimer';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+  ContextMenuSeparator,
+} from './common/ContextMenu';
 
 interface DashboardTabsProps {
   dashboards: Dashboard[];
@@ -15,6 +22,9 @@ interface DashboardTabsProps {
   onAddWidget: () => void;
   onStyleClick: () => void;
   onSettingsClick: () => void;
+  onCloseAllTabs?: () => void;
+  onCloseTabsToRight?: (dashboard: Dashboard) => void;
+  onToggleTabLock?: (dashboard: Dashboard) => void;
 }
 
 export const DashboardTabs: React.FC<DashboardTabsProps> = ({
@@ -27,6 +37,9 @@ export const DashboardTabs: React.FC<DashboardTabsProps> = ({
   onAddWidget,
   onStyleClick,
   onSettingsClick,
+  onCloseAllTabs,
+  onCloseTabsToRight,
+  onToggleTabLock,
 }) => {
   const [editingDashboard, setEditingDashboard] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
@@ -126,127 +139,184 @@ export const DashboardTabs: React.FC<DashboardTabsProps> = ({
   }
 
   return (
-    <div className={`transition-opacity duration-300 ${isIdle ? 'opacity-0' : 'opacity-100'}`}>
-      <div className="flex items-center gap-2 px-4 py-2 bg-black/20">
-        <div ref={tabsContainerRef} className="flex-1 flex items-center gap-1 overflow-hidden">
-          {dashboards.map(dashboard => {
-            const scheme = COLOR_SCHEMES[dashboard.colorScheme] || COLOR_SCHEMES['purple'];
-            const isActive = currentDashboard.id === dashboard.id;
-            
-            return (
-              <div
-                key={dashboard.id}
-                className={`dashboard-tab group flex items-center gap-1 px-4 py-2 rounded-t-lg transition-colors cursor-pointer relative shrink-0 ${
-                  isActive
-                    ? 'bg-white/15 text-white'
-                    : 'text-white/70 hover:text-white hover:bg-white/5'
-                }`}
-                onClick={() => onDashboardChange(dashboard)}
-              >
-                {isActive && (
-                  <div 
-                    className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r ${scheme.from} ${scheme.via} ${scheme.to}`}
-                  />
-                )}
-                {editingDashboard === dashboard.id ? (
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="text"
-                      value={editingName}
-                      onChange={(e) => setEditingName(e.target.value)}
-                      onKeyDown={(e) => handleKeyPress(e, dashboard)}
-                      className="bg-transparent border-b border-white/30 focus:border-white/60 outline-none px-1 py-0.5 text-sm w-32"
-                      autoFocus
-                    />
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditSave(dashboard);
-                      }}
-                      className="p-1 hover:bg-white/10 rounded"
-                    >
-                      <Check size={14} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditCancel();
-                      }}
-                      className="p-1 hover:bg-white/10 rounded"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${scheme.from} ${scheme.via} ${scheme.to} mr-2`} />
-                    <span className="text-sm truncate">{dashboard.name}</span>
-                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditStart(dashboard);
-                        }}
-                        className="p-1 hover:bg-white/10 rounded"
+    <ContextMenu>
+      <ContextMenuTrigger>
+        <div className={`transition-opacity duration-300 ${isIdle ? 'opacity-0' : 'opacity-100'}`}>
+          <div className="flex items-center gap-2 px-4 py-2 bg-black/20">
+            <div ref={tabsContainerRef} className="flex-1 flex items-center gap-1 overflow-hidden">
+              {dashboards.map(dashboard => {
+                const scheme = COLOR_SCHEMES[dashboard.colorScheme] || COLOR_SCHEMES['purple'];
+                const isActive = currentDashboard.id === dashboard.id;
+                
+                return (
+                  <ContextMenu key={dashboard.id}>
+                    <ContextMenuTrigger>
+                      <div
+                        className={`dashboard-tab group flex items-center gap-1 px-4 py-2 rounded-t-lg transition-colors cursor-pointer relative shrink-0 ${
+                          isActive
+                            ? 'bg-white/15 text-white'
+                            : 'text-white/70 hover:text-white hover:bg-white/5'
+                        }`}
+                        onClick={() => onDashboardChange(dashboard)}
                       >
-                        <Edit2 size={12} />
-                      </button>
-                      {dashboards.length > 1 && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDashboardDelete(dashboard);
-                          }}
-                          className="p-1 hover:bg-white/10 rounded text-red-400"
-                        >
-                          <Trash2 size={12} />
-                        </button>
+                        {isActive && (
+                          <div 
+                            className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r ${scheme.from} ${scheme.via} ${scheme.to}`}
+                          />
+                        )}
+                        {editingDashboard === dashboard.id ? (
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="text"
+                              value={editingName}
+                              onChange={(e) => setEditingName(e.target.value)}
+                              onKeyDown={(e) => handleKeyPress(e, dashboard)}
+                              className="bg-transparent border-b border-white/30 focus:border-white/60 outline-none px-1 py-0.5 text-sm w-32"
+                              autoFocus
+                            />
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditSave(dashboard);
+                              }}
+                              className="p-1 hover:bg-white/10 rounded"
+                            >
+                              <Check size={14} />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditCancel();
+                              }}
+                              className="p-1 hover:bg-white/10 rounded"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${scheme.from} ${scheme.via} ${scheme.to} mr-2`} />
+                            <span className="text-sm truncate">{dashboard.name}</span>
+                            {dashboard.locked && (
+                              <Lock size={12} className="ml-2 text-white/50" />
+                            )}
+                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditStart(dashboard);
+                                }}
+                                className="p-1 hover:bg-white/10 rounded"
+                              >
+                                <Edit2 size={12} />
+                              </button>
+                              {dashboards.length > 1 && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDashboardDelete(dashboard);
+                                  }}
+                                  className="p-1 hover:bg-white/10 rounded text-red-400"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      <ContextMenuItem onClick={() => handleEditStart(dashboard)}>
+                        <Edit2 size={14} className="mr-2" />
+                        Rename
+                      </ContextMenuItem>
+                      <ContextMenuItem onClick={() => onToggleTabLock?.(dashboard)}>
+                        {dashboard.locked ? (
+                          <>
+                            <Unlock size={14} className="mr-2" />
+                            Unlock Tab
+                          </>
+                        ) : (
+                          <>
+                            <Lock size={14} className="mr-2" />
+                            Lock Tab
+                          </>
+                        )}
+                      </ContextMenuItem>
+                      {onCloseTabsToRight && (
+                        <ContextMenuItem onClick={() => onCloseTabsToRight(dashboard)}>
+                          <XCircle size={14} className="mr-2" />
+                          Close Tabs to Right
+                        </ContextMenuItem>
                       )}
-                    </div>
-                  </>
-                )}
-              </div>
-            );
-          })}
+                      <ContextMenuSeparator />
+                      {!dashboard.locked && dashboards.length > 1 && (
+                        <ContextMenuItem onClick={() => onDashboardDelete(dashboard)} className="text-red-500 focus:text-red-500">
+                          <Trash2 size={14} className="mr-2" />
+                          Delete
+                        </ContextMenuItem>
+                      )}
+                    </ContextMenuContent>
+                  </ContextMenu>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onDashboardAdd}
+                className="flex items-center gap-1 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              >
+                <Plus size={16} />
+                New Dashboard
+              </button>
+              <div className="w-px h-6 bg-white/10 mx-2" />
+              <button
+                onClick={onAddWidget}
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors duration-200"
+              >
+                <Plus size={18} />
+                Add Widget
+              </button>
+              <button 
+                onClick={onStyleClick}
+                className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <Palette size={20} />
+              </button>
+              <button 
+                onClick={onSettingsClick}
+                className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <Settings size={20} />
+              </button>
+              <div className="w-px h-6 bg-white/10 mx-2" />
+              <button
+                onClick={toggleTabBar}
+                className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                title="Hide Dashboard Tabs"
+              >
+                <ChevronUp size={16} />
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onDashboardAdd}
-            className="flex items-center gap-1 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-          >
-            <Plus size={16} />
-            New Dashboard
-          </button>
-          <div className="w-px h-6 bg-white/10 mx-2" />
-          <button
-            onClick={onAddWidget}
-            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors duration-200"
-          >
-            <Plus size={18} />
-            Add Widget
-          </button>
-          <button 
-            onClick={onStyleClick}
-            className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <Palette size={20} />
-          </button>
-          <button 
-            onClick={onSettingsClick}
-            className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <Settings size={20} />
-          </button>
-          <div className="w-px h-6 bg-white/10 mx-2" />
-          <button
-            onClick={toggleTabBar}
-            className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-            title="Hide Dashboard Tabs"
-          >
-            <ChevronUp size={16} />
-          </button>
-        </div>
-      </div>
-    </div>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem onClick={onDashboardAdd}>
+          <Plus size={14} className="mr-2" />
+          New Dashboard
+        </ContextMenuItem>
+        {onCloseAllTabs && (
+          <>
+            <ContextMenuSeparator />
+            <ContextMenuItem onClick={onCloseAllTabs}>
+              <XCircle size={14} className="mr-2" />
+              Close All Tabs
+            </ContextMenuItem>
+          </>
+        )}
+      </ContextMenuContent>
+    </ContextMenu>
   );
 }; 

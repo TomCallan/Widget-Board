@@ -2,11 +2,13 @@ import { LucideIcon } from 'lucide-react';
 
 // Interface for widget configuration field definitions
 export interface WidgetConfigField {
-  type: 'text' | 'number' | 'boolean' | 'select' | 'authKey';
+  type: 'text' | 'number' | 'boolean' | 'select' | 'authKey' | 'textarea' | 'color';
   label: string;
   description?: string;
   defaultValue?: any;
   required?: boolean;
+  placeholder?: string;
+  rows?: number; // for textarea
   options?: { label: string; value: any }[]; // For select type
   min?: number; // For number type
   max?: number; // For number type
@@ -27,6 +29,7 @@ export interface Widget {
     position: { x: number; y: number };
     size: { width: number; height: number };
   };
+  onToggleFullscreen?: (id: string) => void;
 }
 
 export interface WidgetProps {
@@ -40,6 +43,7 @@ export interface WidgetProps {
 export interface WidgetConfig {
   type: string;
   name: string;
+  singleton?: boolean; // Allow only one instance of this widget
   defaultSize: { width: number; height: number };
   minSize: { width: number; height: number };
   maxSize: { width: number; height: number };
@@ -49,8 +53,10 @@ export interface WidgetConfig {
   features?: {
     resizable?: boolean;
     fullscreenable?: boolean;
-    hasSettings?: boolean;
     configurable?: boolean;
+    showChrome?: boolean; // Show/hide the widget container header
+    needsAuth?: string[]; // List of auth services required
+    contentDrivenHeight?: boolean; // Widget height is determined by its content
     notifications?: {
       sound?: boolean | string; // Can be true for default behavior or a URL string
       desktop?: boolean;
@@ -60,6 +66,7 @@ export interface WidgetConfig {
   configFields?: Record<string, WidgetConfigField>;
   version: string;
   categories?: string[];
+  tags?: string[];
   author?: {
     name: string;
     email?: string;
@@ -92,6 +99,11 @@ export type ColorScheme = {
   via: string;
   to: string;
   accentColor: string;
+  accent: {
+    h: number;
+    s: number;
+    l: number;
+  };
 };
 
 export const COLOR_SCHEMES: Record<string, ColorScheme> = {
@@ -100,35 +112,40 @@ export const COLOR_SCHEMES: Record<string, ColorScheme> = {
     from: 'from-slate-900',
     via: 'via-purple-900',
     to: 'to-slate-900',
-    accentColor: 'purple'
+    accentColor: 'purple',
+    accent: { h: 267, s: 90, l: 65 },
   },
   blue: {
     name: 'Ocean Depths',
     from: 'from-slate-900',
     via: 'via-blue-900',
     to: 'to-slate-900',
-    accentColor: 'blue'
+    accentColor: 'blue',
+    accent: { h: 217, s: 91, l: 60 },
   },
   green: {
     name: 'Forest Night',
     from: 'from-slate-900',
     via: 'via-green-900',
     to: 'to-slate-900',
-    accentColor: 'green'
+    accentColor: 'green',
+    accent: { h: 142, s: 71, l: 45 },
   },
   rose: {
     name: 'Sunset Glow',
     from: 'from-slate-900',
     via: 'via-rose-900',
     to: 'to-slate-900',
-    accentColor: 'rose'
+    accentColor: 'rose',
+    accent: { h: 336, s: 88, l: 60 },
   },
   amber: {
     name: 'Golden Hour',
     from: 'from-slate-900',
     via: 'via-amber-900',
     to: 'to-slate-900',
-    accentColor: 'amber'
+    accentColor: 'amber',
+    accent: { h: 36, s: 93, l: 50 },
   }
 };
 
@@ -139,4 +156,5 @@ export interface Dashboard {
   createdAt: number;
   updatedAt: number;
   colorScheme: string;
+  locked?: boolean;
 }

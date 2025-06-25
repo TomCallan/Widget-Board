@@ -13,6 +13,21 @@
 }
 
 /* Custom scrollbar styles */
+html {
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+  --scrollbar-thumb-hover: hsl(
+    var(--accent-h),
+    var(--accent-s),
+    calc(var(--accent-l) - 10%)
+  );
+}
+
+body {
+  @apply scrollbar-thin scrollbar-thumb-accent-500 scrollbar-track-transparent hover:scrollbar-thumb-accent-600;
+}
+
+/* Custom scrollbar styles */
 ::-webkit-scrollbar {
   width: var(--scrollbar-width);
   height: var(--scrollbar-width);

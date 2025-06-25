@@ -127,7 +127,7 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({
                               <Maximize2 size={12} className="text-purple-400" />
                             </div>
                           )}
-                          {config.features?.hasSettings && (
+                          {config.features?.configurable && (
                             <div className="p-1 bg-white/5 rounded" title="Configurable">
                               <Settings size={12} className="text-purple-400" />
                             </div>

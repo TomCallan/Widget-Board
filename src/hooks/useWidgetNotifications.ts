@@ -8,6 +8,8 @@ export interface WidgetNotificationOptions extends Omit<NotificationOptions, 'de
   };
 }
 
+const DEFAULT_NOTIFICATION_SOUND = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+
 export const useWidgetNotifications = (widgetConfig: WidgetConfig) => {
   const { notify } = useNotifications();
 
@@ -33,8 +35,9 @@ export const useWidgetNotifications = (widgetConfig: WidgetConfig) => {
           volume: options.soundOptions.volume
         };
       } else if (typeof notificationFeatures.sound === 'string') {
-        // Support for widget-specific default sound URL
         notificationOptions.sound = notificationFeatures.sound;
+      } else if (notificationFeatures.sound === true) {
+        notificationOptions.sound = DEFAULT_NOTIFICATION_SOUND;
       }
     }
 

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { X, Plus, Key, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { Plus, Key, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
+import { Dialog } from './common/Dialog';
+import { Tabs } from './common/Tabs';
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -44,37 +46,26 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
     );
   };
 
-  if (!isOpen) return null;
+  const settingsTabs = [
+    { id: 'general', label: 'General' },
+    { id: 'appearance', label: 'Appearance' },
+    { id: 'performance', label: 'Performance' },
+    { id: 'auth', label: 'Auth' },
+  ];
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-      <div className="bg-slate-800/90 backdrop-blur-lg border border-white/20 rounded-xl p-6 w-full max-w-2xl mx-4">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-white">Settings</h2>
-          <button
-            onClick={onClose}
-            className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex space-x-1 mb-6">
-          {(['general', 'appearance', 'performance', 'auth'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-lg capitalize transition-colors ${
-                activeTab === tab
-                  ? 'bg-purple-500 text-white'
-                  : 'text-white/70 hover:bg-white/10'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+    <Dialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Settings"
+      size="2xl"
+    >
+      <div>
+        <Tabs
+          tabs={settingsTabs}
+          activeTab={activeTab}
+          onTabClick={(tabId) => setActiveTab(tabId as SettingsTab)}
+        />
 
         <div className="space-y-6">
           {/* General Settings */}
@@ -87,7 +78,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                     type="checkbox"
                     checked={settings.general.enableAnimations}
                     onChange={(e) => updateGeneralSettings({ enableAnimations: e.target.checked })}
-                    className="form-checkbox h-4 w-4 text-purple-500 rounded border-white/20 bg-white/5 focus:ring-purple-500"
+                    className="form-checkbox h-4 w-4 text-accent-500 rounded border-white/20 bg-white/5 focus:ring-accent-500"
                   />
                 </label>
                 <p className="text-sm text-white/50 mt-1">
@@ -102,7 +93,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                     type="checkbox"
                     checked={settings.general.showWidgetGrid}
                     onChange={(e) => updateGeneralSettings({ showWidgetGrid: e.target.checked })}
-                    className="form-checkbox h-4 w-4 text-purple-500 rounded border-white/20 bg-white/5 focus:ring-purple-500"
+                    className="form-checkbox h-4 w-4 text-accent-500 rounded border-white/20 bg-white/5 focus:ring-accent-500"
                   />
                 </label>
                 <p className="text-sm text-white/50 mt-1">
@@ -122,7 +113,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                     type="checkbox"
                     checked={settings.appearance.showTabBar}
                     onChange={(e) => updateAppearanceSettings({ showTabBar: e.target.checked })}
-                    className="form-checkbox h-4 w-4 text-purple-500 rounded border-white/20 bg-white/5 focus:ring-purple-500"
+                    className="form-checkbox h-4 w-4 text-accent-500 rounded border-white/20 bg-white/5 focus:ring-accent-500"
                   />
                 </label>
                 <p className="text-sm text-white/50 mt-1">
@@ -137,7 +128,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                   onChange={(e) => updateAppearanceSettings({ 
                     defaultWidgetSize: e.target.value as 'compact' | 'normal' | 'large' 
                   })}
-                  className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
                 >
                   <option value="compact">Compact</option>
                   <option value="normal">Normal</option>
@@ -174,7 +165,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                     type="checkbox"
                     checked={settings.performance.reduceMotion}
                     onChange={(e) => updatePerformanceSettings({ reduceMotion: e.target.checked })}
-                    className="form-checkbox h-4 w-4 text-purple-500 rounded border-white/20 bg-white/5 focus:ring-purple-500"
+                    className="form-checkbox h-4 w-4 text-accent-500 rounded border-white/20 bg-white/5 focus:ring-accent-500"
                   />
                 </label>
                 <p className="text-sm text-white/50 mt-1">
@@ -189,7 +180,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                     type="checkbox"
                     checked={settings.performance.hardwareAcceleration}
                     onChange={(e) => updatePerformanceSettings({ hardwareAcceleration: e.target.checked })}
-                    className="form-checkbox h-4 w-4 text-purple-500 rounded border-white/20 bg-white/5 focus:ring-purple-500"
+                    className="form-checkbox h-4 w-4 text-accent-500 rounded border-white/20 bg-white/5 focus:ring-accent-500"
                   />
                 </label>
                 <p className="text-sm text-white/50 mt-1">
@@ -206,7 +197,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                 <h3 className="text-white font-medium">API Keys</h3>
                 <button
                   onClick={() => setShowNewKeyForm(true)}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-accent-500 hover:bg-accent-600 text-white rounded-lg transition-colors"
                 >
                   <Plus size={16} />
                   Add Key
@@ -222,7 +213,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                       value={newAuthKey.name}
                       onChange={(e) => setNewAuthKey(prev => ({ ...prev, name: e.target.value }))}
                       placeholder="e.g., OpenAI API Key"
-                      className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
                     />
                   </div>
                   <div>
@@ -232,7 +223,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                       value={newAuthKey.service}
                       onChange={(e) => setNewAuthKey(prev => ({ ...prev, service: e.target.value }))}
                       placeholder="e.g., OpenAI"
-                      className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
                     />
                   </div>
                   <div>
@@ -242,14 +233,14 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                       value={newAuthKey.key}
                       onChange={(e) => setNewAuthKey(prev => ({ ...prev, key: e.target.value }))}
                       placeholder="Enter your API key"
-                      className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
                     />
                   </div>
                   <div className="flex justify-end gap-2">
                     <button
                       onClick={() => {
-                        setNewAuthKey({ name: '', service: '', key: '' });
                         setShowNewKeyForm(false);
+                        setNewAuthKey({ name: '', service: '', key: '' });
                       }}
                       className="px-3 py-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                     >
@@ -257,7 +248,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                     </button>
                     <button
                       onClick={handleAddAuthKey}
-                      className="px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
+                      className="px-3 py-1.5 bg-accent-500 hover:bg-accent-600 text-white rounded-lg transition-colors"
                     >
                       Save Key
                     </button>
@@ -266,58 +257,46 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
               )}
 
               <div className="space-y-2">
-                {settings.auth.keys.map((key) => (
-                  <div
-                    key={key.id}
-                    className="p-3 bg-white/5 rounded-lg flex items-center justify-between"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <Key size={16} className="text-purple-400" />
-                        <span className="text-white font-medium">{key.name}</span>
-                      </div>
-                      <div className="text-sm text-white/50 mt-1">
-                        {key.service} · Added {new Date(key.createdAt).toLocaleDateString()}
+                {settings.auth.keys.length === 0 && !showNewKeyForm && (
+                  <p className="text-center text-white/50 py-4">No API keys added yet.</p>
+                )}
+                {settings.auth.keys.map((authKey) => (
+                  <div key={authKey.id} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Key size={16} className="text-white/50" />
+                      <div>
+                        <p className="font-medium text-white">{authKey.name}</p>
+                        <p className="text-sm text-white/50">{authKey.service}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => toggleKeyVisibility(key.id)}
-                        className="p-1.5 text-white/50 hover:text-white hover:bg-white/10 rounded transition-colors"
-                        title={visibleKeys.includes(key.id) ? 'Hide key' : 'Show key'}
-                      >
-                        {visibleKeys.includes(key.id) ? <EyeOff size={16} /> : <Eye size={16} />}
+                      <p className="text-sm text-white/50 font-mono">
+                        {visibleKeys.includes(authKey.id) ? authKey.key : '••••••••••••'}
+                      </p>
+                      <button onClick={() => toggleKeyVisibility(authKey.id)} className="p-1.5 text-white/70 hover:text-white rounded-lg transition-colors">
+                        {visibleKeys.includes(authKey.id) ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
-                      <button
-                        onClick={() => removeAuthKey(key.id)}
-                        className="p-1.5 text-white/50 hover:text-red-400 hover:bg-white/10 rounded transition-colors"
-                        title="Remove key"
-                      >
+                      <button onClick={() => removeAuthKey(authKey.id)} className="p-1.5 text-red-400 hover:text-red-500 rounded-lg transition-colors">
                         <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
                 ))}
-
-                {settings.auth.keys.length === 0 && !showNewKeyForm && (
-                  <div className="text-center py-8 text-white/50">
-                    No API keys added yet
-                  </div>
-                )}
               </div>
             </div>
           )}
         </div>
-
+        
         <div className="flex justify-end gap-3 mt-8">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-          >
-            Close
-          </button>
-        </div>
+           <button
+             onClick={onClose}
+             className="px-4 py-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+           >
+             Close
+           </button>
+         </div>
+
       </div>
-    </div>
+    </Dialog>
   );
 }; 

@@ -86,7 +86,6 @@ export const clockWidgetConfig: WidgetConfig = {
   features: {
     resizable: true,
     fullscreenable: false,
-    hasSettings: false,
     configurable: true
   },
   configFields: {
@@ -94,25 +93,25 @@ export const clockWidgetConfig: WidgetConfig = {
       type: 'boolean',
       label: 'Show Seconds',
       description: 'Display seconds in the time',
-      default: true
+      defaultValue: true
     },
     use24Hour: {
       type: 'boolean',
       label: '24-Hour Format',
       description: 'Use 24-hour time format instead of AM/PM',
-      default: false
+      defaultValue: false
     },
     showDate: {
       type: 'boolean',
       label: 'Show Date',
       description: 'Display the current date below the time',
-      default: true
+      defaultValue: true
     },
     dateFormat: {
       type: 'select',
       label: 'Date Format',
       description: 'Choose how the date should be displayed',
-      default: 'long',
+      defaultValue: 'long',
       options: [
         { label: 'Short (Wed, Jan 1, \'24)', value: 'short' },
         { label: 'Medium (Wednesday, January 1)', value: 'medium' },
