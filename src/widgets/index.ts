@@ -1,4 +1,5 @@
 import { WidgetConfig } from '../types/widget';
+
 // Define widget categories
 export const WIDGET_CATEGORIES = {
   TIME: 'Time & Date',
@@ -27,18 +28,14 @@ async function loadWidgetsFromDirectory(isBase: boolean) {
     // Skip non-widget files (like index.ts)
     if (!path.endsWith('.tsx')) continue;
 
-    // Find the widget config in the module
-    const configKey = Object.keys(module).find(key => 
-      key.toLowerCase().includes('config') || 
-      (module[key] && typeof module[key] === 'object' && 'type' in module[key])
-    );
+    const config = Object.values(module as Record<string, unknown>).find(
+        value => value && typeof value === 'object' && 'type' in value && 'component' in value
+    ) as WidgetConfig | undefined;
 
-    if (!configKey) {
+    if (!config) {
       console.warn(`No widget config found in ${path}`);
       continue;
     }
-
-    const config = module[configKey] as WidgetConfig;
     
     // Convert category strings to match WIDGET_CATEGORIES values
     if (config.categories) {
@@ -104,9 +101,4 @@ export function getWidgetsByCategory(category: WidgetCategory): WidgetConfig[] {
   return Object.values(WIDGET_REGISTRY).filter(widget => 
     widget.categories?.includes(category)
   );
-}
-
-// Helper function to check if a widget is custom
-export function isCustomWidget(type: string): boolean {
-  return type in CUSTOM_WIDGETS;
-}
+} 

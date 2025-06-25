@@ -17,6 +17,12 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuRadioGroup,
+  ContextMenuRadioItem,
 } from './components/common/ContextMenu';
 
 function App() {
@@ -174,6 +180,34 @@ function App() {
           <ContextMenuItem onClick={() => setShowWidgetSelector(true)}>
             <Plus size={14} className="mr-2" />
             Add Widget
+          </ContextMenuItem>
+          <ContextMenuSeparator />
+          <ContextMenuItem onClick={handleDashboardAdd}>
+            Create Dashboard
+          </ContextMenuItem>
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>
+              Switch Tab
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent>
+              <ContextMenuRadioGroup 
+                value={currentDashboard.id}
+                onValueChange={(id) => setCurrentDashboardId(id)}
+              >
+                {dashboards.map(dashboard => (
+                  <ContextMenuRadioItem key={dashboard.id} value={dashboard.id}>
+                    {dashboard.name}
+                  </ContextMenuRadioItem>
+                ))}
+              </ContextMenuRadioGroup>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+          <ContextMenuSeparator />
+          <ContextMenuItem onClick={() => setShowSettings(true)}>
+            Settings
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => setShowColorSchemeSelector(true)}>
+            Change Colour Scheme
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
