@@ -16,12 +16,12 @@ export const WidgetConfigDialog: React.FC<WidgetConfigDialogProps> = ({
   onClose,
   onUpdate,
 }) => {
-  const [formData, setFormData] = useState<Record<string, any>>(widget.config || {});
+  const [formData, setFormData] = useState<Record<string, unknown>>(widget.config || {});
 
   useEffect(() => {
     // Set default values for any unset fields
     if (config.configFields) {
-      const defaults: Record<string, any> = {};
+      const defaults: Record<string, unknown> = {};
       Object.entries(config.configFields).forEach(([key, field]) => {
         if (formData[key] === undefined && field.defaultValue !== undefined) {
           defaults[key] = field.defaultValue;
@@ -39,7 +39,7 @@ export const WidgetConfigDialog: React.FC<WidgetConfigDialogProps> = ({
     onClose();
   };
 
-  const handleChange = (key: string, value: any) => {
+  const handleChange = (key: string, value: unknown) => {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 

@@ -22,7 +22,6 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
     updatePerformanceSettings,
     addAuthKey,
     removeAuthKey,
-    updateAuthKey,
   } = useSettings();
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');

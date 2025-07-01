@@ -68,7 +68,7 @@ export const WeatherWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
           config: { ...config, city }
         });
       }
-    } catch (err) {
+    } catch {
       setError('City not found or API error');
       sendNotification('Weather update failed', { type: 'error' });
     } finally {

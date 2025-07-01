@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { WidgetCard } from './WidgetCard';
-import { SearchBar } from './SearchBar';
 import type { MarketplaceWidget } from '../types';
 import { Plus, Tag } from 'lucide-react';
 

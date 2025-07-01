@@ -46,7 +46,6 @@ interface PageManagerProps {
   currentPageId: string;
   onPageChange: (pageId: string) => void;
   onPageAdd: (page: DashboardPage) => void;
-  onPageUpdate: (pageId: string, updates: Partial<DashboardPage>) => void;
   onPageDelete: (pageId: string) => void;
 }
 
@@ -55,7 +54,6 @@ export const PageManager: React.FC<PageManagerProps> = ({
   currentPageId,
   onPageChange,
   onPageAdd,
-  onPageUpdate,
   onPageDelete
 }) => {
   const [isEditing, setIsEditing] = useState(false);

@@ -9,7 +9,6 @@ interface SettingsContextType {
   updatePerformanceSettings: (settings: Partial<AppSettings['performance']>) => void;
   addAuthKey: (key: Omit<AuthKey, 'id' | 'createdAt'>) => void;
   removeAuthKey: (id: string) => void;
-  updateAuthKey: (id: string, updates: Partial<Omit<AuthKey, 'id' | 'createdAt'>>) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | null>(null);
@@ -81,17 +80,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }));
   }, [setSettings]);
 
-  const updateAuthKey = useCallback((id: string, updates: Partial<Omit<AuthKey, 'id' | 'createdAt'>>) => {
-    setSettings(prev => ({
-      ...prev,
-      auth: {
-        ...prev.auth,
-        keys: prev.auth.keys.map(key => 
-          key.id === id ? { ...key, ...updates } : key
-        ),
-      },
-    }));
-  }, [setSettings]);
 
   return (
     <SettingsContext.Provider
@@ -102,7 +90,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updatePerformanceSettings,
         addAuthKey,
         removeAuthKey,
-        updateAuthKey,
       }}
     >
       {children}

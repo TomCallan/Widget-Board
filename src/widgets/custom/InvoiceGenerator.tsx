@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WidgetConfig, WidgetProps } from '../../types/widget';
-import { FileText, Plus, Trash2, Download, Eye, Calendar, DollarSign } from 'lucide-react';
+import { FileText, Plus, Trash2, Download, Eye } from 'lucide-react';
 
 interface InvoiceItem {
   id: string;
@@ -26,7 +26,7 @@ interface InvoiceData {
   notes: string;
 }
 
-const InvoiceCreatorWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
+const InvoiceCreatorWidget: React.FC<WidgetProps> = ({ widget }) => {
   const { primaryColor, currency, companyName: defaultCompanyName, taxRate: defaultTaxRate } = widget.config;
   
   const [invoice, setInvoice] = useState<InvoiceData>({
@@ -75,7 +75,7 @@ const InvoiceCreatorWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
     }));
   };
 
-  const updateItem = (id: string, field: keyof InvoiceItem, value: any) => {
+  const updateItem = (id: string, field: keyof InvoiceItem, value: string | number) => {
     setInvoice(prev => ({
       ...prev,
       items: prev.items.map(item => {
@@ -190,7 +190,7 @@ const InvoiceCreatorWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {invoice.items.map((item, index) => (
+                  {invoice.items.map((item) => (
                     <tr key={item.id} className="border-b border-gray-200">
                       <td className="py-3">{item.description}</td>
                       <td className="text-right py-3">{item.quantity}</td>

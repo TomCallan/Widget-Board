@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { WIDGET_REGISTRY, WIDGET_CATEGORIES } from '../widgets';
-import { Plus, X, Maximize2, ArrowUpDown, Settings, Search } from 'lucide-react';
+import { X, Maximize2, ArrowUpDown, Settings, Search } from 'lucide-react';
 
 interface WidgetSelectorProps {
   isOpen: boolean;

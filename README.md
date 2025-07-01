@@ -69,4 +69,12 @@ This will start the development server, and you can view the application by navi
 │   └── main.tsx         # Application entry point
 ├── tailwind.config.js   # Tailwind CSS configuration
 └── vite.config.ts       # Vite configuration
-``` 
+```
+
+## Further Reading
+
+Additional documentation is available in the `docs/` directory:
+
+- [Widget Development Guide](docs/WIDGET_DEVELOPMENT.md)
+- [Notification System](docs/NOTIFICATIONS.md)
+- [Project Architecture](docs/ARCHITECTURE.md)

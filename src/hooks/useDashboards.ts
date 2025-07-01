@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 import { Dashboard, Widget } from '../types/widget';
 import { COLOR_SCHEMES } from '../types/widget';

@@ -4,12 +4,11 @@ import { WidgetContainer } from './components/WidgetContainer';
 import { WidgetSelector } from './components/WidgetSelector';
 import { DashboardTabs } from './components/DashboardTabs';
 import { WIDGET_REGISTRY, initializeWidgets } from './widgets';
-import { Plus, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { WidgetConfigDialog } from './components/WidgetConfigDialog';
 import { SettingsDialog } from './components/SettingsDialog';
 import { useSettings } from './contexts/SettingsContext';
 import { useDashboards } from './hooks/useDashboards';
-import { COLOR_SCHEMES } from './types/widget';
 import { ColorSchemeDialog } from './components/ColorSchemeDialog';
 import { useApplySettings } from './hooks/useApplySettings';
 import {

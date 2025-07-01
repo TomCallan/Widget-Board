@@ -23,7 +23,7 @@ async function loadWidgetsFromDirectory(isBase: boolean) {
   const loadedWidgets: Record<string, WidgetConfig> = {};
 
   for (const path in modules) {
-    const module = modules[path] as any;
+    const module = modules[path] as Record<string, unknown>;
     
     // Skip non-widget files (like index.ts)
     if (!path.endsWith('.tsx')) continue;
@@ -42,7 +42,7 @@ async function loadWidgetsFromDirectory(isBase: boolean) {
       config.categories = config.categories.map(category => {
         // Find the matching category from WIDGET_CATEGORIES
         const matchingCategory = Object.entries(WIDGET_CATEGORIES).find(
-          ([_, value]) => value === category
+          ([, value]) => value === category
         );
         return matchingCategory ? matchingCategory[1] : category;
       });
