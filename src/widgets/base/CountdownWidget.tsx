@@ -16,7 +16,7 @@ export const CountdownWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => 
   }));
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: number;
     
     if (state.isRunning && state.timeLeft > 0) {
       interval = setInterval(() => {
@@ -133,7 +133,7 @@ export const countdownWidgetConfig: WidgetConfig = {
   features: {
     resizable: false,
     fullscreenable: false,
-    hasSettings: true
+    configurable: true
   },
   version: '1.0.0',
   categories: ['Time & Date', 'Tools']

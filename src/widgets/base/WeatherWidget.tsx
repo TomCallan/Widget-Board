@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { WidgetProps, WidgetConfig } from '../../types/widget';
 import { Cloud, CloudRain, Sun, Loader2, Search } from 'lucide-react';
 import { useWidgetNotifications } from '../../hooks/useWidgetNotifications';
+import { useAuthKeys } from '../../hooks/useAuthKeys';
 
 interface WeatherConfig {
   city: string;
@@ -31,9 +32,13 @@ export const WeatherWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
   const [error, setError] = useState<string | null>(null);
   const { sendNotification } = useWidgetNotifications(weatherWidgetConfig);
   const [searchCity, setSearchCity] = useState(config.city);
+  const { getKeyValue } = useAuthKeys();
+
+  // Get the actual API key value from the auth system
+  const actualApiKey = getKeyValue(config.apiKey) || config.apiKey;
 
   const fetchWeather = async (city: string) => {
-    if (!config.apiKey) {
+    if (!actualApiKey) {
       setError('Please configure your OpenWeatherMap API key');
       return;
     }
@@ -43,7 +48,7 @@ export const WeatherWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
 
     try {
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=${config.units}&appid=${config.apiKey}`
+        `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=${config.units}&appid=${actualApiKey}`
       );
 
       if (!response.ok) {
@@ -81,7 +86,7 @@ export const WeatherWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
     // Set up auto-refresh every 15 minutes
     const interval = setInterval(() => fetchWeather(config.city), 15 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [config.city, config.units, config.apiKey]);
+  }, [config.city, config.units, actualApiKey]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,7 +117,7 @@ export const WeatherWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
     return iconMap[weather.icon] || <Cloud className="w-16 h-16 text-white/70" />;
   };
 
-  if (!config.apiKey) {
+  if (!actualApiKey) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-4 text-center text-white/70">
         <Cloud className="w-12 h-12 mb-4 opacity-50" />
@@ -203,10 +208,11 @@ export const weatherWidgetConfig: WidgetConfig = {
   },
   configFields: {
     apiKey: {
-      type: 'text',
+      type: 'authKey',
       label: 'OpenWeatherMap API Key',
-      description: 'Enter your OpenWeatherMap API key',
-      defaultValue: '',
+      service: 'OpenWeatherMap',
+      description: 'Select your OpenWeatherMap API key from the auth keys',
+      required: true,
     },
     city: {
       type: 'text',

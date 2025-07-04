@@ -56,8 +56,9 @@ const CurrencyConverterWidget: React.FC<WidgetProps> = ({ widget: { config } }) 
               value={fromCurrency}
               onChange={(e) => setFromCurrency(e.target.value)}
               className="bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
+              style={{ colorScheme: 'dark' }}
             >
-              {currencies.map(c => <option key={c} value={c}>{c}</option>)}
+              {currencies.map(c => <option key={c} value={c} className="bg-gray-800 text-white">{c}</option>)}
             </select>
           </div>
           <div className="text-center text-2xl font-bold text-white/50">TO</div>
@@ -69,8 +70,9 @@ const CurrencyConverterWidget: React.FC<WidgetProps> = ({ widget: { config } }) 
               value={toCurrency}
               onChange={(e) => setToCurrency(e.target.value)}
               className="bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
+              style={{ colorScheme: 'dark' }}
             >
-              {currencies.map(c => <option key={c} value={c}>{c}</option>)}
+              {currencies.map(c => <option key={c} value={c} className="bg-gray-800 text-white">{c}</option>)}
             </select>
           </div>
         </>

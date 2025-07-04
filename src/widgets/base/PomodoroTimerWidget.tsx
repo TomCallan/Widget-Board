@@ -16,17 +16,24 @@ const PomodoroTimerWidget: React.FC<WidgetProps> = ({ widget: { config } }) => {
       interval = setInterval(() => {
         setTime((prevTime) => prevTime - 1);
       }, 1000);
-    } else if (isActive && time === 0) {
-      // Switch between work and break
-      setIsBreak(!isBreak);
-      setTime(isBreak ? workDuration : breakDuration);
     }
     return () => {
       if (interval) {
         clearInterval(interval);
       }
     };
-  }, [isActive, time, isBreak, workDuration, breakDuration]);
+  }, [isActive, time]);
+
+  useEffect(() => {
+    if (isActive && time === 0) {
+      // Switch between work and break when timer reaches 0
+      setIsBreak((prevIsBreak) => {
+        const newIsBreak = !prevIsBreak;
+        setTime(newIsBreak ? breakDuration : workDuration);
+        return newIsBreak;
+      });
+    }
+  }, [isActive, time, workDuration, breakDuration]);
 
   const toggleTimer = () => {
     setIsActive(!isActive);

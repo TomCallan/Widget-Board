@@ -104,10 +104,13 @@ export const WidgetConfigDialog: React.FC<WidgetConfigDialogProps> = ({
                 onChange={(e) => handleChange(key, e.target.value)}
                 className="w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-accent-500"
                 required={field.required}
+                style={{
+                  colorScheme: 'dark'
+                }}
               >
-                {!field.required && <option value="">Select an option</option>}
+                {!field.required && <option value="" className="bg-gray-800 text-white">Select an option</option>}
                 {field.options.map((option) => (
-                  <option key={option.value} value={option.value}>
+                  <option key={option.value} value={option.value} className="bg-gray-800 text-white">
                     {option.label}
                   </option>
                 ))}

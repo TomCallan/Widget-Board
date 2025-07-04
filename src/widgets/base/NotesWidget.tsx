@@ -23,26 +23,35 @@ interface Note {
 }
 
 export const NotesWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
-  const [notes, setNotes] = useState<Note[]>(widget.config.notes || [
-    {
-      id: 1,
-      title: 'Important Meeting',
-      content: 'Remember to call client at 2pm',
-      color: 'yellow',
-      category: 'Work',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: 2,
-      title: 'Quarterly Review',
-      content: 'Review quarterly reports',
-      color: 'blue',
-      category: 'Work',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ]);
+  const [notes, setNotes] = useState<Note[]>(() => {
+    const savedNotes = widget.config.notes || [
+      {
+        id: 1,
+        title: 'Important Meeting',
+        content: 'Remember to call client at 2pm',
+        color: 'yellow',
+        category: 'Work',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 2,
+        title: 'Quarterly Review',
+        content: 'Review quarterly reports',
+        color: 'blue',
+        category: 'Work',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+    
+    // Convert string dates back to Date objects if they were serialized
+    return savedNotes.map((note: any) => ({
+      ...note,
+      createdAt: note.createdAt instanceof Date ? note.createdAt : new Date(note.createdAt),
+      updatedAt: note.updatedAt instanceof Date ? note.updatedAt : new Date(note.updatedAt)
+    }));
+  });
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -55,7 +64,7 @@ export const NotesWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const colors = ['yellow', 'blue', 'green', 'pink', 'purple'];
-  const categories = Array.from(new Set(notes.map(note => note.category).filter(Boolean)));
+  const categories = Array.from(new Set(notes.map(note => note.category).filter((cat): cat is string => Boolean(cat))));
 
   const addNote = () => {
     if (newNote.title?.trim() && newNote.content?.trim()) {
@@ -266,9 +275,10 @@ export const NotesWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
                 value={newNote.color || 'yellow'}
                 onChange={(e) => setNewNote({ ...newNote, color: e.target.value })}
                 className="px-2 py-1 text-sm bg-white/10 border border-white/20 rounded focus:outline-none focus:ring-2 focus:ring-purple-400"
+                style={{ colorScheme: 'dark' }}
               >
                 {colors.map(color => (
-                  <option key={color} value={color}>
+                  <option key={color} value={color} className="bg-gray-800 text-white">
                     {color.charAt(0).toUpperCase() + color.slice(1)}
                   </option>
                 ))}
@@ -427,7 +437,7 @@ export const notesWidgetConfig: WidgetConfig = {
   features: {
     resizable: true,
     fullscreenable: true,
-    hasSettings: false
+    configurable: false
   },
   version: '1.0.0',
   categories: ['Productivity']

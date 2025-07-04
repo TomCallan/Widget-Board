@@ -41,12 +41,15 @@ export const AuthKeySelect: React.FC<AuthKeySelectProps> = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={`w-full bg-white/5 border border-white/20 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 ${className}`}
+        style={{
+          colorScheme: 'dark'
+        }}
       >
         {!required && (
-          <option value="">Select an API key</option>
+          <option value="" className="bg-gray-800 text-white">Select an API key</option>
         )}
         {filteredKeys.map((key) => (
-          <option key={key.id} value={key.id}>
+          <option key={key.id} value={key.id} className="bg-gray-800 text-white">
             {key.name} ({key.service})
           </option>
         ))}

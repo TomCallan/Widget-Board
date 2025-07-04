@@ -4,12 +4,13 @@ import { Plus, Check, X, Calendar, Clock, ChevronDown, Tag, AlertCircle, RepeatI
 
 interface Task {
   id: string;
-  title: string;
+  text: string;
   completed: boolean;
   dueDate?: Date;
   priority?: 'low' | 'medium' | 'high';
   tags?: string[];
   notes?: string;
+  category?: string;
   repeat?: {
     frequency: 'daily' | 'weekly' | 'monthly';
     nextDue?: Date;
@@ -37,13 +38,13 @@ export const TodoWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
     category: ''
   });
 
-  const categories = Array.from(new Set(tasks.map(task => task.category).filter(Boolean)));
+  const categories = Array.from(new Set(tasks.map(task => task.category).filter((cat): cat is string => Boolean(cat))));
 
   useEffect(() => {
     // Check for recurring tasks
     const now = new Date();
     const updatedTasks = tasks.map(task => {
-      if (task.repeat?.nextDue && new Date(task.repeat.nextDue) <= now) {
+      if (task.repeat && task.repeat.nextDue && new Date(task.repeat.nextDue) <= now) {
         const frequency = task.repeat.frequency;
         let nextDue = new Date(task.repeat.nextDue);
         
@@ -203,20 +204,21 @@ export const TodoWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
             <div className="flex gap-2">
               <input
                 type="text"
-                value={newTaskData.category ?? ''}
-                onChange={(e) => setNewTaskData({ ...newTaskData, category: e.target.value || undefined })}
-                placeholder="Category"
-                className="flex-1 px-2 py-1 text-sm bg-white/10 border border-white/20 rounded focus:outline-none focus:ring-2 focus:ring-purple-400"
+                              value={newTaskData.category || ''}
+              onChange={(e) => setNewTaskData({ ...newTaskData, category: e.target.value || undefined })}
+              placeholder="Category"
+              className="flex-1 px-2 py-1 text-sm bg-white/10 border border-white/20 rounded focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
               
               <select
                 value={newTaskData.priority || 'medium'}
                 onChange={(e) => setNewTaskData({ ...newTaskData, priority: e.target.value as Task['priority'] })}
                 className="px-2 py-1 text-sm bg-white/10 border border-white/20 rounded focus:outline-none focus:ring-2 focus:ring-purple-400"
+                style={{ colorScheme: 'dark' }}
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
+                <option value="low" className="bg-gray-800 text-white">Low</option>
+                <option value="medium" className="bg-gray-800 text-white">Medium</option>
+                <option value="high" className="bg-gray-800 text-white">High</option>
               </select>
             </div>
 
@@ -240,18 +242,19 @@ export const TodoWidget: React.FC<WidgetProps> = ({ widget, onUpdate }) => {
                     setNewTaskData({
                       ...newTaskData,
                       repeat: {
-                        frequency: value as Task['repeat']['frequency'],
+                        frequency: value as 'daily' | 'weekly' | 'monthly',
                         nextDue: undefined
                       }
                     });
                   }
                 }}
                 className="px-2 py-1 text-sm bg-white/10 border border-white/20 rounded focus:outline-none focus:ring-2 focus:ring-purple-400"
+                style={{ colorScheme: 'dark' }}
               >
-                <option value="">Not recurring</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
+                <option value="" className="bg-gray-800 text-white">Not recurring</option>
+                <option value="daily" className="bg-gray-800 text-white">Daily</option>
+                <option value="weekly" className="bg-gray-800 text-white">Weekly</option>
+                <option value="monthly" className="bg-gray-800 text-white">Monthly</option>
               </select>
             </div>
 
@@ -361,7 +364,7 @@ export const todoWidgetConfig: WidgetConfig = {
   features: {
     resizable: true,
     fullscreenable: true,
-    hasSettings: false
+    configurable: false
   },
   version: '1.0.0',
   categories: ['Productivity']
