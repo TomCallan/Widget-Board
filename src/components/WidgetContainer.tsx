@@ -115,11 +115,29 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
         const dashboard = containerRef.current.closest('.dashboard');
         if (dashboard) {
           const dashboardRect = dashboard.getBoundingClientRect();
-          const newX = Math.max(0, e.clientX - dashboardRect.left - dragOffset.x);
-          const newY = Math.max(0, e.clientY - dashboardRect.top - dragOffset.y);
+          const style = window.getComputedStyle(dashboard);
+          const paddingLeft = parseFloat(style.paddingLeft);
+          const paddingTop = parseFloat(style.paddingTop);
+          const paddingRight = parseFloat(style.paddingRight);
+          const paddingBottom = parseFloat(style.paddingBottom);
+
+          const newX = e.clientX - (dashboardRect.left + paddingLeft) - dragOffset.x;
+          const newY = e.clientY - (dashboardRect.top + paddingTop) - dragOffset.y;
           
-          const snappedX = Math.round(newX / gridSize) * gridSize;
-          const snappedY = Math.round(newY / gridSize) * gridSize;
+          const widgetWidth = containerRef.current.offsetWidth;
+          const widgetHeight = containerRef.current.offsetHeight;
+
+          const contentWidth = dashboard.clientWidth - paddingLeft - paddingRight;
+          const contentHeight = dashboard.clientHeight - paddingTop - paddingBottom;
+          
+          const maxX = Math.max(0, contentWidth - widgetWidth);
+          const maxY = Math.max(0, contentHeight - widgetHeight);
+
+          const clampedX = Math.max(0, Math.min(newX, maxX));
+          const clampedY = Math.max(0, Math.min(newY, maxY));
+          
+          const snappedX = Math.round(clampedX / gridSize) * gridSize;
+          const snappedY = Math.round(clampedY / gridSize) * gridSize;
           
           containerRef.current.style.transform = `translate(${snappedX}px, ${snappedY}px)`;
           containerRef.current.style.zIndex = '1000';
@@ -147,18 +165,46 @@ export const WidgetContainer: React.FC<WidgetContainerProps> = ({
 
     const handleMouseUp = (e: MouseEvent) => {
       if (isDragging && containerRef.current) {
-        const dashboard = containerRef.current.closest('.dashboard');
-        if (dashboard) {
-          const dashboardRect = dashboard.getBoundingClientRect();
-          const newX = Math.max(0, e.clientX - dashboardRect.left - dragOffset.x);
-          const newY = Math.max(0, e.clientY - dashboardRect.top - dragOffset.y);
-          
-          const snappedX = Math.round(newX / gridSize) * gridSize;
-          const snappedY = Math.round(newY / gridSize) * gridSize;
-          
-          onPositionChange(widget.id, { x: snappedX, y: snappedY });
-          containerRef.current.style.zIndex = '';
+        const distance = Math.sqrt(
+          Math.pow(e.clientX - dragStartPos.current.x, 2) +
+          Math.pow(e.clientY - dragStartPos.current.y, 2)
+        );
+
+        if (distance > 2) {
+          const dashboard = containerRef.current.closest('.dashboard');
+          if (dashboard) {
+            const dashboardRect = dashboard.getBoundingClientRect();
+            const style = window.getComputedStyle(dashboard);
+            const paddingLeft = parseFloat(style.paddingLeft);
+            const paddingTop = parseFloat(style.paddingTop);
+            const paddingRight = parseFloat(style.paddingRight);
+            const paddingBottom = parseFloat(style.paddingBottom);
+            
+            const newX = e.clientX - (dashboardRect.left + paddingLeft) - dragOffset.x;
+            const newY = e.clientY - (dashboardRect.top + paddingTop) - dragOffset.y;
+            
+            const widgetWidth = containerRef.current.offsetWidth;
+            const widgetHeight = containerRef.current.offsetHeight;
+
+            const contentWidth = dashboard.clientWidth - paddingLeft - paddingRight;
+            const contentHeight = dashboard.clientHeight - paddingTop - paddingBottom;
+
+            const maxX = Math.max(0, contentWidth - widgetWidth);
+            const maxY = Math.max(0, contentHeight - widgetHeight);
+
+            const clampedX = Math.max(0, Math.min(newX, maxX));
+            const clampedY = Math.max(0, Math.min(newY, maxY));
+            
+            const snappedX = Math.round(clampedX / gridSize) * gridSize;
+            const snappedY = Math.round(clampedY / gridSize) * gridSize;
+            
+            onPositionChange(widget.id, { x: snappedX, y: snappedY });
+          }
+        } else {
+          containerRef.current.style.transform = `translate(${widget.position.x}px, ${widget.position.y}px)`;
         }
+        
+        containerRef.current.style.zIndex = '';
         setIsDragging(false);
       }
       

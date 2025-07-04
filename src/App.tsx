@@ -4,7 +4,7 @@ import { WidgetContainer } from './components/WidgetContainer';
 import { WidgetSelector } from './components/WidgetSelector';
 import { DashboardTabs } from './components/DashboardTabs';
 import { WIDGET_REGISTRY, initializeWidgets } from './widgets';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Edit2 } from 'lucide-react';
 import { WidgetConfigDialog } from './components/WidgetConfigDialog';
 import { SettingsDialog } from './components/SettingsDialog';
 import { useSettings } from './contexts/SettingsContext';
@@ -94,45 +94,15 @@ function App() {
 
   return (
     <div 
-      className={`app min-h-screen bg-gradient-to-br ${scheme.from} ${scheme.via} ${scheme.to}`}
+      className={`h-screen w-screen overflow-hidden bg-gradient-to-br ${scheme.from} ${scheme.via} ${scheme.to}`}
       style={{
         '--grid-opacity': settings.general.showWidgetGrid ? '0.05' : '0',
       } as React.CSSProperties}
     >
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width=%2220%22%20height=%2220%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg%20fill=%22%239C92AC%22%20fill-opacity=%220.05%22%3E%3Ccircle%20cx=%223%22%20cy=%223%22%20r=%221%22/%3E%3C/g%3E%3C/svg%3E')] opacity-40"></div>
-      
-      {/* Grid overlay for visual feedback */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none" style={{
-        backgroundImage: `
-          linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-        `,
-        backgroundSize: '20px 20px'
-      }}></div>
-      
-      {/* Header */}
-      <header className="relative z-20">
-        <DashboardTabs
-          dashboards={dashboards}
-          currentDashboard={currentDashboard}
-          onDashboardChange={(dashboard) => setCurrentDashboardId(dashboard.id)}
-          onDashboardAdd={handleDashboardAdd}
-          onDashboardRename={handleDashboardRename}
-          onDashboardDelete={handleDashboardDelete}
-          onAddWidget={() => setShowWidgetSelector(true)}
-          onStyleClick={() => setShowColorSchemeSelector(true)}
-          onSettingsClick={() => setShowSettings(true)}
-          onCloseAllTabs={handleCloseAllTabs}
-          onCloseTabsToRight={handleCloseTabsToRight}
-          onToggleTabLock={handleToggleTabLock}
-        />
-      </header>
-
       {/* Dashboard */}
       <ContextMenu>
         <ContextMenuTrigger>
-          <main className="dashboard relative z-10 px-6 pb-6" style={{ minHeight: 'calc(100vh - 120px)' }}>
+          <main className="dashboard h-full w-full p-6 overflow-auto">
             {currentDashboard.widgets.map(widget => {
               const config = widgetRegistry[widget.type];
               if (!config) return null;
@@ -158,22 +128,6 @@ function App() {
                 </WidgetContainer>
               );
             })}
-
-            {currentDashboard.widgets.length === 0 && (
-              <div className="flex items-center justify-center h-64">
-                <div className="text-center">
-                  <Plus className="mx-auto mb-4 text-white/30" size={48} />
-                  <p className="text-white/50 mb-4">No widgets added yet</p>
-                  <button
-                    onClick={() => setShowWidgetSelector(true)}
-                    className="flex items-center gap-2 px-4 py-2 hover:bg-white/10 text-white rounded-lg transition-colors duration-200"
-                  >
-                    <Plus size={18} className="mr-1" />
-                    Add Your First Widget
-                  </button>
-                </div>
-              </div>
-            )}
           </main>
         </ContextMenuTrigger>
         <ContextMenuContent>
@@ -194,14 +148,52 @@ function App() {
                 value={currentDashboard.id}
                 onValueChange={(id) => setCurrentDashboardId(id)}
               >
-                {dashboards.map(dashboard => (
-                  <ContextMenuRadioItem key={dashboard.id} value={dashboard.id}>
-                    {dashboard.name}
-                  </ContextMenuRadioItem>
-                ))}
+                {dashboards.map(dashboard => {
+                  const tabScheme = COLOR_SCHEMES[dashboard.colorScheme] || COLOR_SCHEMES['purple'];
+                  const isSelected = dashboard.id === currentDashboard.id;
+                  return (
+                    <ContextMenuRadioItem 
+                      key={dashboard.id} 
+                      value={dashboard.id} 
+                      className={`flex items-center gap-2 pl-2 ${isSelected ? 'bg-white/10' : ''}`}
+                    >
+                      <div className={`w-1 h-6 rounded-sm bg-gradient-to-b ${tabScheme.from} ${tabScheme.via} ${tabScheme.to}`} />
+                      <span className={isSelected ? 'font-medium' : ''}>{dashboard.name}</span>
+                      {isSelected && (
+                        <div className="ml-auto flex items-center gap-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const newName = prompt('Enter new name:', dashboard.name);
+                              if (newName && newName.trim()) {
+                                handleDashboardRename(dashboard, newName.trim());
+                              }
+                            }}
+                            className="p-1 hover:bg-white/10 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Edit2 size={12} />
+                          </button>
+                        </div>
+                      )}
+                    </ContextMenuRadioItem>
+                  );
+                })}
               </ContextMenuRadioGroup>
             </ContextMenuSubContent>
           </ContextMenuSub>
+          <ContextMenuItem onClick={() => {
+            const newName = prompt('Enter new name:', currentDashboard.name);
+            if (newName && newName.trim()) {
+              handleDashboardRename(currentDashboard, newName.trim());
+            }
+          }}>
+            Rename Current Dashboard
+          </ContextMenuItem>
+          {dashboards.length > 1 && (
+            <ContextMenuItem onClick={() => handleDashboardDelete(currentDashboard)} className="text-red-400 hover:text-red-300">
+              Delete Current Dashboard
+            </ContextMenuItem>
+          )}
           <ContextMenuSeparator />
           <ContextMenuItem onClick={() => setShowSettings(true)}>
             Settings

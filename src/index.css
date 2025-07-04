@@ -12,6 +12,25 @@
   --scrollbar-thumb-hover-opacity: 0.5;
 }
 
+/* Ensure full viewport height */
+html, body, #root {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+}
+
+#root > div.app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
 /* Custom scrollbar styles */
 html {
   --scrollbar-track: transparent;
@@ -57,13 +76,6 @@ body {
 .disable-animations * {
   transition: none !important;
   animation: none !important;
-}
-
-/* Add a grid background for widget alignment */
-.dashboard {
-  background-image: linear-gradient(to right, rgba(255, 255, 255, var(--grid-opacity)) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(255, 255, 255, var(--grid-opacity)) 1px, transparent 1px);
-  background-size: var(--widget-spacing) var(--widget-spacing);
 }
 
 /* Apply transition duration to all animated elements */
