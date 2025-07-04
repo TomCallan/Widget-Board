@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog } from '../common/Dialog';
 import { MarketplaceWidget, MarketplaceFilters } from '../../types/marketplace';
 import { MarketplaceGrid } from './MarketplaceGrid';
-import { MarketplaceFilters as FiltersComponent } from './MarketplaceFilters';
+import { MarketplaceFiltersComponent } from './MarketplaceFilters';
 import { WidgetDetails } from './WidgetDetails';
 import { UserDashboard } from './UserDashboard';
 import { SubmitWidget } from './SubmitWidget';
@@ -222,7 +222,7 @@ export const MarketplaceDialog: React.FC<MarketplaceDialogProps> = ({
         </div>
 
         {showFilters && (
-          <FiltersComponent
+          <MarketplaceFiltersComponent
             filters={filters}
             onFiltersChange={setFilters}
             availableCategories={Array.from(new Set(widgets.map(w => w.category)))}

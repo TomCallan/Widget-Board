@@ -9,7 +9,7 @@ interface MarketplaceFiltersProps {
   availableTags: string[];
 }
 
-export const MarketplaceFilters: React.FC<MarketplaceFiltersProps> = ({
+export const MarketplaceFiltersComponent: React.FC<MarketplaceFiltersProps> = ({
   filters,
   onFiltersChange,
   availableCategories,
