@@ -3,6 +3,7 @@ import { WIDGET_REGISTRY, WIDGET_CATEGORIES } from '../widgets';
 import { Plus, X, Maximize2, ArrowUpDown, Settings, Search, Store } from 'lucide-react';
 import { MarketplaceDialog } from './marketplace/MarketplaceDialog';
 import { MarketplaceWidget } from '../types/marketplace';
+import { useAuth } from '../contexts/AuthContext';
 
 interface WidgetSelectorProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({
   onAddWidget,
   registry = WIDGET_REGISTRY
 }) => {
+  const { user, signInWithGitHub } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [showMarketplace, setShowMarketplace] = useState(false);
@@ -58,11 +60,21 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({
               <h2 className="text-xl font-semibold text-white">Add Widget</h2>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setShowMarketplace(true)}
+                  onClick={() => {
+                    if (!user) {
+                      const shouldSignIn = confirm('Marketplace access requires authentication. Would you like to sign in with GitHub?');
+                      if (shouldSignIn) {
+                        signInWithGitHub();
+                      }
+                    } else {
+                      setShowMarketplace(true);
+                    }
+                  }}
                   className="flex items-center gap-2 px-4 py-2 bg-purple-500/20 text-purple-400 rounded-lg hover:bg-purple-500/30 transition-colors"
                 >
                   <Store size={16} />
                   Marketplace
+                  {!user && <span className="text-xs">(Sign-in required)</span>}
                 </button>
                 <button
                   onClick={onClose}
@@ -187,11 +199,21 @@ export const WidgetSelector: React.FC<WidgetSelectorProps> = ({
                   <div className="text-lg mb-2">No widgets found</div>
                   <div className="text-sm mb-4">Try adjusting your search or browse the marketplace for more options</div>
                   <button
-                    onClick={() => setShowMarketplace(true)}
+                    onClick={() => {
+                      if (!user) {
+                        const shouldSignIn = confirm('Marketplace access requires authentication. Would you like to sign in with GitHub?');
+                        if (shouldSignIn) {
+                          signInWithGitHub();
+                        }
+                      } else {
+                        setShowMarketplace(true);
+                      }
+                    }}
                     className="flex items-center gap-2 px-4 py-2 bg-purple-500/20 text-purple-400 rounded-lg hover:bg-purple-500/30 transition-colors mx-auto"
                   >
                     <Store size={16} />
                     Browse Marketplace
+                    {!user && <span className="text-xs">(Sign-in required)</span>}
                   </button>
                 </div>
               )}

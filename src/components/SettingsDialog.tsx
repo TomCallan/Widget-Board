@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Plus, Key, Eye, EyeOff, Trash2, User, LogOut, Crown } from 'lucide-react';
+import { Plus, Key, Eye, EyeOff, Trash2, User, LogOut, Crown, Database, RotateCcw } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Dialog } from './common/Dialog';
 import { AuthKey } from '../types/settings';
+import { resetLocalStorage } from '../utils/dataMigration';
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -219,6 +220,56 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
                 </div>
               )
             )}
+          </div>
+        </div>
+
+        {/* Data Management */}
+        <div className="space-y-4">
+          <h3 className="text-white font-medium text-lg flex items-center gap-2">
+            <Database size={20} />
+            Data Management
+          </h3>
+          
+          <div className="bg-white/5 rounded-lg p-4 space-y-4">
+            <div className="space-y-2">
+              <h4 className="text-white font-medium">Reset Local Storage</h4>
+              <p className="text-white/60 text-sm">
+                Clear all locally stored data including dashboards, settings, and widget configurations. 
+                This action cannot be undone.
+              </p>
+              
+              <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 text-yellow-400 text-sm">
+                <p className="font-medium mb-1">⚠️ Warning:</p>
+                <ul className="text-xs space-y-0.5">
+                  <li>• All local dashboards will be deleted</li>
+                  <li>• All widget data will be lost</li>
+                  <li>• App settings will be reset to defaults</li>
+                  <li>• The page will reload after reset</li>
+                </ul>
+              </div>
+              
+              <button
+                onClick={() => {
+                  const confirm = window.confirm(
+                    '🚨 Are you sure you want to reset ALL local storage?\n\n' +
+                    'This will permanently delete:\n' +
+                    '• All your dashboards\n' +
+                    '• All widget configurations\n' +
+                    '• All app settings\n' +
+                    '• All API keys\n\n' +
+                    'This action CANNOT be undone!'
+                  );
+                  
+                  if (confirm) {
+                    resetLocalStorage();
+                  }
+                }}
+                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                <RotateCcw size={16} />
+                Reset Local Storage
+              </button>
+            </div>
           </div>
         </div>
       </div>

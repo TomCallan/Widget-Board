@@ -15,6 +15,9 @@ import { ColorSchemeDialog } from './components/ColorSchemeDialog';
 import { useApplySettings } from './hooks/useApplySettings';
 import { useAuth } from './contexts/AuthContext';
 import { DashboardSharingDialog } from './components/DashboardSharingDialog';
+import { UserProfile } from './components/UserProfile';
+import { useDashboardUrl } from './hooks/useDashboardUrl';
+import { shouldRequireAuth, isWebEnvironment } from './utils/environment';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -32,6 +35,7 @@ function App() {
   const { user, loading: authLoading, signInWithGitHub, signOut } = useAuth();
   const { storageMode } = useStorageMode();
   const { settings } = useSettings();
+  const { updateBrowserUrl, getCurrentDashboardUrl } = useDashboardUrl();
   const [isLoading, setIsLoading] = useState(true);
   const [widgetRegistry, setWidgetRegistry] = useState<typeof WIDGET_REGISTRY>({});
   const [showWidgetSelector, setShowWidgetSelector] = useState(false);
@@ -73,6 +77,13 @@ function App() {
       setIsLoading(false);
     });
   }, []);
+
+  // Update browser URL when current dashboard changes
+  useEffect(() => {
+    if (currentDashboard && user && storageMode === 'cloud') {
+      updateBrowserUrl(currentDashboard);
+    }
+  }, [currentDashboard, user, storageMode, updateBrowserUrl]);
 
   const handleConfigureWidget = (id: string) => {
     const widget = currentDashboard.widgets.find(w => w.id === id);
@@ -123,8 +134,8 @@ function App() {
     );
   }
 
-  // Show login screen if not authenticated and using cloud mode
-  if (!user && storageMode === 'cloud') {
+  // Show login screen if not authenticated and using cloud mode OR if web environment requires auth
+  if (!user && (storageMode === 'cloud' || shouldRequireAuth())) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800 flex items-center justify-center">
         <div className="bg-white/10 backdrop-blur-md rounded-lg p-8 shadow-xl border border-white/20 max-w-md w-full mx-4">
@@ -132,6 +143,9 @@ function App() {
             <h1 className="text-3xl font-bold text-white mb-2">Widget Board</h1>
             <p className="text-white/80 mb-8">
               Create and customize your personalized dashboard with widgets
+              {isWebEnvironment() && (
+                <><br /><span className="text-sm text-white/60">Web version requires authentication for data persistence</span></>
+              )}
             </p>
             
             <button
@@ -165,6 +179,13 @@ function App() {
         '--grid-opacity': settings.general.showWidgetGrid ? '0.05' : '0',
       } as React.CSSProperties}
     >
+      {/* User Profile - Fixed position */}
+      {user && (
+        <div className="fixed top-4 right-4 z-30">
+          <UserProfile />
+        </div>
+      )}
+
       {/* Dashboard */}
       <ContextMenu>
         <ContextMenuTrigger>
@@ -203,7 +224,7 @@ function App() {
           </ContextMenuItem>
           <ContextMenuSeparator />
           <ContextMenuItem onClick={handleDashboardAdd}>
-            Create Dashboard
+            Create Tab
           </ContextMenuItem>
           <ContextMenuSub>
             <ContextMenuSubTrigger>
@@ -253,14 +274,28 @@ function App() {
               handleDashboardRename(currentDashboard, newName.trim());
             }
           }}>
-            Rename Current Dashboard
+            Rename Current Tab
           </ContextMenuItem>
           <ContextMenuItem onClick={() => setShowSharingDialog(true)}>
-            Share Dashboard
+            Share Tab
           </ContextMenuItem>
+          {user && storageMode === 'cloud' && (
+            <ContextMenuItem onClick={async () => {
+              try {
+                const url = getCurrentDashboardUrl(currentDashboard);
+                await navigator.clipboard.writeText(url);
+                alert('Tab URL copied to clipboard!');
+              } catch (error) {
+                console.error('Failed to copy URL:', error);
+                alert('Failed to copy URL to clipboard');
+              }
+            }}>
+              Copy Tab URL
+            </ContextMenuItem>
+          )}
           {dashboards.length > 1 && (
             <ContextMenuItem onClick={() => handleDashboardDelete(currentDashboard)} className="text-red-400 hover:text-red-300">
-              Delete Current Dashboard
+              Delete Current Tab
             </ContextMenuItem>
           )}
           <ContextMenuSeparator />

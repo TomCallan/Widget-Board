@@ -15,8 +15,8 @@ interface StorageModeSelectorProps {
 }
 
 export function StorageModeSelector({ isOpen, onClose }: StorageModeSelectorProps) {
-  const { storageMode, isCloudAvailable, switchToLocal, switchToCloud } = useStorageMode();
-  const { user } = useAuth();
+  const { storageMode, isCloudConfigured, isCloudAvailable, switchToLocal, switchToCloud } = useStorageMode();
+  const { user, signInWithGitHub } = useAuth();
   const [switching, setSwitching] = useState(false);
 
   const handleSwitchToCloud = async () => {
@@ -24,9 +24,20 @@ export function StorageModeSelector({ isOpen, onClose }: StorageModeSelectorProp
       setSwitching(true);
       await switchToCloud();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error switching to cloud:', error);
-      alert('Failed to switch to cloud storage. Please ensure you are signed in.');
+      if (error.message === 'REQUIRES_AUTH') {
+        // Storage mode was saved, now trigger sign-in
+        try {
+          await signInWithGitHub();
+          onClose();
+        } catch (authError) {
+          console.error('Authentication failed:', authError);
+          alert('Sign-in failed. Please try again.');
+        }
+      } else {
+        alert('Failed to switch to cloud storage: ' + error.message);
+      }
     } finally {
       setSwitching(false);
     }
@@ -86,14 +97,14 @@ export function StorageModeSelector({ isOpen, onClose }: StorageModeSelectorProp
           <div 
             className={`
               p-4 border-2 rounded-lg transition-all
-              ${!isCloudAvailable 
+              ${!isCloudConfigured 
                 ? 'border-gray-200 dark:border-gray-700 opacity-50 cursor-not-allowed'
                 : storageMode === 'cloud'
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 cursor-pointer'
                   : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 cursor-pointer'
               }
             `}
-            onClick={isCloudAvailable ? handleSwitchToCloud : undefined}
+            onClick={isCloudConfigured ? handleSwitchToCloud : undefined}
           >
             <div className="flex items-start space-x-3">
               <Cloud className="h-6 w-6 text-gray-600 dark:text-gray-300 mt-1" />
@@ -113,11 +124,20 @@ export function StorageModeSelector({ isOpen, onClose }: StorageModeSelectorProp
                   ✓ Real-time sync • ✓ Cross-device • ✓ Sharing • ✓ Backup
                 </div>
                 
-                {!isCloudAvailable && (
+                {!isCloudConfigured && (
                   <div className="mt-3 flex items-center space-x-2 text-amber-600 dark:text-amber-400">
                     <AlertTriangle className="h-4 w-4" />
                     <span className="text-xs">
-                      {!user ? 'Sign in required' : 'Cloud storage not configured'}
+                      Cloud storage not configured
+                    </span>
+                  </div>
+                )}
+                
+                {isCloudConfigured && !user && storageMode !== 'cloud' && (
+                  <div className="mt-3 flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span className="text-xs">
+                      Click to sign in with GitHub
                     </span>
                   </div>
                 )}
@@ -129,11 +149,12 @@ export function StorageModeSelector({ isOpen, onClose }: StorageModeSelectorProp
           </div>
         </div>
 
-        {storageMode === 'local' && isCloudAvailable && (
+        {storageMode === 'local' && isCloudConfigured && (
           <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
             <p className="text-sm text-blue-800 dark:text-blue-200">
               <strong>Tip:</strong> You can switch to cloud storage to sync your data across devices 
-              and enable sharing features. Your local data will be migrated automatically.
+              and enable sharing features. {!user ? 'Sign-in with GitHub is required. ' : ''}
+              Your local data will be migrated automatically.
             </p>
           </div>
         )}

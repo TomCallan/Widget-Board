@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Dialog } from './common/Dialog';
 import { useDashboardSharing } from '../hooks/useDashboardSharing';
 import { useAuth } from '../contexts/AuthContext';
+import { useDashboardUrl } from '../hooks/useDashboardUrl';
 import { Dashboard } from '../types/widget';
-import { Link, Copy, Trash2, Users, Share2, Clock } from 'lucide-react';
+import { Link, Copy, Trash2, Users, Share2, Clock, ExternalLink } from 'lucide-react';
 
 interface DashboardSharingDialogProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface DashboardSharingDialogProps {
 
 export function DashboardSharingDialog({ isOpen, onClose, dashboard }: DashboardSharingDialogProps) {
   const { user } = useAuth();
+  const { getCurrentDashboardUrl } = useDashboardUrl();
   const {
     loading,
     error,
@@ -64,7 +66,7 @@ export function DashboardSharingDialog({ isOpen, onClose, dashboard }: Dashboard
       await shareWithUser(dashboard.id, newUsername.trim(), sharePermissions);
       await loadShares();
       setNewUsername('');
-      alert(`Dashboard shared with ${newUsername}!`);
+      alert(`Tab shared with ${newUsername}!`);
     } catch (err) {
       console.error('Failed to share with user:', err);
       alert(err instanceof Error ? err.message : 'Failed to share with user');
@@ -99,13 +101,49 @@ export function DashboardSharingDialog({ isOpen, onClose, dashboard }: Dashboard
   if (!user) return null;
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} title={`Share "${dashboard.name}"`}>
+    <Dialog isOpen={isOpen} onClose={onClose} title={`Share Tab "${dashboard.name}"`}>
       <div className="space-y-6">
         {error && (
           <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm">
             {error}
           </div>
         )}
+
+        {/* Your Tab URL Section */}
+        <div className="space-y-4">
+          <h3 className="text-white font-medium flex items-center gap-2">
+            <ExternalLink size={16} />
+            Your Tab URL
+          </h3>
+          
+          <div className="flex gap-2 items-center bg-white/5 border border-white/10 rounded-lg p-3">
+            <input
+              type="text"
+              value={getCurrentDashboardUrl(dashboard)}
+              readOnly
+              className="flex-1 bg-transparent text-white/80 text-sm outline-none"
+            />
+            <button
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(getCurrentDashboardUrl(dashboard));
+                  alert('Tab URL copied to clipboard!');
+                } catch (error) {
+                  console.error('Failed to copy URL:', error);
+                  alert('Failed to copy URL to clipboard');
+                }
+              }}
+              className="p-2 hover:bg-white/10 rounded text-white/60 hover:text-white"
+              title="Copy URL"
+            >
+              <Copy size={14} />
+            </button>
+          </div>
+          
+          <p className="text-xs text-white/50">
+            This is your personal tab URL. Anyone with this link can view your tab.
+          </p>
+        </div>
 
         {/* Create Public Link Section */}
         <div className="space-y-4">

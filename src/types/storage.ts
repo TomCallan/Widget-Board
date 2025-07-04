@@ -1,3 +1,5 @@
+import { getDefaultStorageMode } from '../utils/environment';
+
 export type StorageMode = 'local' | 'cloud';
 
 export interface StorageConfig {
@@ -7,6 +9,6 @@ export interface StorageConfig {
 }
 
 export const DEFAULT_STORAGE_CONFIG: StorageConfig = {
-  mode: 'local',
+  mode: getDefaultStorageMode(),
   autoSync: true
 }; 

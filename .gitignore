@@ -22,7 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.env
 
 src/widgets/custom/
 src/dev/
+.cursor/
+
+IMPLEMENTATION_SUMMARY.md
