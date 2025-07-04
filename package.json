@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@radix-ui/react-context-menu": "^2.2.15",
+    "@supabase/supabase-js": "^2.39.0",
     "@types/lodash": "^4.17.18",
     "@types/react-transition-group": "^4.4.12",
     "@types/uuid": "^10.0.0",

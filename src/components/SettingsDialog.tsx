@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Plus, Key, Eye, EyeOff, Trash2 } from 'lucide-react';
+import { Plus, Key, Eye, EyeOff, Trash2, User, LogOut, Crown } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
+import { useAuth } from '../contexts/AuthContext';
 import { Dialog } from './common/Dialog';
 import { AuthKey } from '../types/settings';
 
@@ -13,6 +14,7 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
   isOpen,
   onClose
 }) => {
+  const { user, isFreeTier, isPremiumTier, dashboardLimit, signOut } = useAuth();
   const {
     settings,
     updateGeneralSettings,
@@ -51,6 +53,79 @@ export const SettingsDialog: React.FC<SettingsDialogProps> = ({
       size="2xl"
     >
       <div className="space-y-6">
+        {/* User Profile */}
+        {user && (
+          <div className="space-y-4">
+            <h3 className="text-white font-medium text-lg flex items-center gap-2">
+              <User size={20} />
+              Profile
+            </h3>
+            
+            <div className="bg-white/5 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                {user.avatar_url ? (
+                  <img 
+                    src={user.avatar_url} 
+                    alt="Profile" 
+                    className="w-12 h-12 rounded-full"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                    <User size={24} className="text-white/60" />
+                  </div>
+                )}
+                
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-white font-medium">{user.full_name || user.username}</h4>
+                    {isPremiumTier() && (
+                      <Crown size={16} className="text-yellow-400" />
+                    )}
+                  </div>
+                  <p className="text-white/60 text-sm">@{user.username}</p>
+                  <p className="text-white/60 text-sm">{user.email}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 pt-3 border-t border-white/10">
+                <div>
+                  <div className="text-white/60 text-xs">Tier</div>
+                  <div className={`text-sm font-medium ${
+                    isPremiumTier() ? 'text-yellow-400' : 'text-blue-400'
+                  }`}>
+                    {isPremiumTier() ? 'Premium' : 'Free'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-white/60 text-xs">Dashboard Limit</div>
+                  <div className="text-white/80 text-sm">
+                    {dashboardLimit === Infinity ? 'Unlimited' : dashboardLimit}
+                  </div>
+                </div>
+              </div>
+              
+              {isFreeTier() && (
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-blue-400 text-sm">
+                  <p className="font-medium mb-1">Free Tier Benefits:</p>
+                  <ul className="text-xs space-y-0.5">
+                    <li>• Up to 3 dashboards</li>
+                    <li>• All available widgets</li>
+                    <li>• Basic sharing features</li>
+                  </ul>
+                </div>
+              )}
+              
+              <button
+                onClick={signOut}
+                className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                <LogOut size={16} />
+                Sign Out
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Auth Keys */}
         <div className="space-y-4">
           <div className="flex justify-between items-center">

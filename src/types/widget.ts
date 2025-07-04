@@ -157,4 +157,5 @@ export interface Dashboard {
   updatedAt: number;
   colorScheme: string;
   locked?: boolean;
+  isPublic?: boolean;
 }
