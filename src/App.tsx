@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Widget } from './types/widget';
 import { WidgetContainer } from './components/WidgetContainer';
 import { WidgetSelector } from './components/WidgetSelector';
-import { DashboardTabs } from './components/DashboardTabs';
 import { WIDGET_REGISTRY, initializeWidgets } from './widgets';
 import { Plus, X, Edit2 } from 'lucide-react';
 import { WidgetConfigDialog } from './components/WidgetConfigDialog';
